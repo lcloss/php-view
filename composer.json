@@ -1,0 +1,21 @@
+{
+    "name": "lcloss/php-view",
+    "description": "Simple PHP package to manage views and templates",
+    "keywords": ["php","view","template"],
+    "homepage": "https://php-view.devcorner.io",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luciano Closs",
+            "email": "luciano@devcorner.io",
+            "homepage": "https://lucianocloss.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "9"
+    }
+}
