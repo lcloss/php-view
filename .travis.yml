@@ -2,8 +2,7 @@ language: php
 php:
   - 7.3
 brefore_script:
-  - ls -la
   - composer self-update
   - composer install --prefer-source --no-interaction
 
-script: phpunit tests
+script: phpunit --bootstrap ./src/View.php tests
