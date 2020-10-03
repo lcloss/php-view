@@ -211,7 +211,7 @@ So, with same template you can use on both cases:
 ### If
 You can easly use If's on your template:
 ```html
-@if( count( $rows ) > 0 )
+@if( count( $rows ) > 0 ):
     <table>
     @for( rows as row )
     <tr>
