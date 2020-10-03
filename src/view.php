@@ -19,41 +19,88 @@ class View {
     }
 
     // Setters
-    public function setDefaultFolder( $folder ) {
+    /**
+     * Set default folder for views.
+     * If not used, default folder is resources/views
+     * @param string $folder Folder where views are
+     * @return void
+     */
+    public function setDefaultFolder( $folder ): void {
         $this->_view_path = $folder;
     }
 
-    public function setDefaultTemplateExtension( $extension ) {
+    /**
+     * Set default template extension for view.
+     * If not used, default extension is .tpl.php
+     * @param string $extension Extension for views
+     * @return void
+     */
+    public function setDefaultTemplateExtension( $extension ): void {
         $this->_tpl_extension = $extension;
     }
 
-    public function setData( $data ) {
+    /**
+     * Set keys for template
+     * @param array $data Keys to use in view
+     * @return void
+     */
+    public function setData( $data ): void {
         $this->_data = $data;
     }
 
-    public function setDoc( $doc ) {
+    /**
+     * Set the document content.
+     * This method can be used when you do not want load from a view file.
+     * @param string $doc Document content
+     * @return void
+     */
+    public function setDoc( $doc ): void {
         $this->_doc = $doc;
     }
 
-    private function setSection($section, $content) {
+    /**
+     * Set section content.
+     * @param string $section Section name
+     * @param string $content Content of section
+     * @return void
+     */
+    private function setSection($section, $content): void {
         $this->_sections[$section] = $content;
     }
 
     // Getters
-    public function getDefaultFolder() {
+    /**
+     * Get default folder.
+     * @return string Folder 
+     */
+    public function getDefaultFolder(): string {
         return $this->_view_path;
     }
 
-    public function getDoc() {
+    /**
+     * Get document
+     * @return string Document
+     */
+    public function getDoc(): string {
         return $this->_doc;
     }
 
-    public function getData() {
+    /**
+     * Get template keys
+     * @return array Keys
+     */
+    public function getData(): array {
         return $this->_data;
     }
     
     // Return view
-    public function view( $template = '', $data = [] ) {
+    /**
+     * Process the view and return result.
+     * @param optional string $template View file to load.
+     * @param optional array $data Keys for the View
+     * @return string Document parsed
+     */
+    public function view( $template = '', $data = [] ): string {
         // Set data
         $this->setData( $data );
 
@@ -69,6 +116,10 @@ class View {
         return $this->getDoc();
     }
 
+    /**
+     * Parse the document
+     * @return void
+     */
     public function process() {
         // Sections template
         $this->_sections();
@@ -92,8 +143,25 @@ class View {
         $this->_clear_keys();
     }
 
+    /**
+     * Load a template view and return it
+     * @param string $template Template View file
+     * @param optional array $data Template keys
+     * @return string
+     */
+    public function get( $template, $data = []): string {
+        // Set data
+        $this->setData( $data );
+
+        // Get template
+        $this->_load_template( $template );
+
+        // Return updated doc
+        return $this->getDoc();
+    }
+
     // Load template
-    private function _load_template( $template ) {
+    private function _load_template( $template ): void {
         $template = str_replace('.', DIRECTORY_SEPARATOR, $template);
         $filename = $this->getDefaultFolder() . $template . $this->_tpl_extension;
         if ( !file_exists($filename) ) {
@@ -106,7 +174,7 @@ class View {
     }
 
     // Replace keys
-    private function _replace_keys() {
+    private function _replace_keys(): void {
         $data = $this->getData();
         
         foreach( $data as $key => $value ) {
@@ -119,7 +187,7 @@ class View {
         }
     }
 
-    private function _replace_raw_keys() {
+    private function _replace_raw_keys(): void {
         $keys_pattern = '/\!\$([\w\.]*)/s';
         preg_match_all( $keys_pattern, $this->_doc, $matches );
 
@@ -130,13 +198,13 @@ class View {
         }
     }
 
-    private function _clear_keys() {
+    private function _clear_keys(): void {
         $keys_pattern = '/{{[\s]*\$[\w]*[\s]*}}/s';
         $this->_doc = preg_replace( $keys_pattern, '', $this->_doc );
     }
 
     // Extends template
-    private function _extends() {
+    private function _extends(): void {
         $extends_pattern = '/@extends\([\s]*([\w\.]*)[\s]*\)(?:\r\n)?/s';
         preg_match_all( $extends_pattern, $this->_doc, $matches );
 
@@ -162,7 +230,7 @@ class View {
     }
 
     // Sections
-    private function _sections() {
+    private function _sections(): void {
         $sections_pattern = '/@section\([\s]*([\w\.]*)(?:\r\n)?[\s]*\)(.*?)@endsection(?:\r\n)?/s';
         preg_match_all( $sections_pattern, $this->_doc, $matches );
 
@@ -173,13 +241,13 @@ class View {
         }
     }
 
-    private function _yield( $key, $content ) {
+    private function _yield( $key, $content ): void {
         $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:\r\n)?/s';
         $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
     }
 
     // Includes
-    private function _includes() {
+    private function _includes(): void {
         $includes_pattern = '/@include\([\s]*([\w\.]*)[\s]*\)(?:\r\n)?/s';
         preg_match_all( $includes_pattern, $this->_doc, $matches );
 
@@ -196,19 +264,8 @@ class View {
         }
     }
 
-    public function get( $template, $data = []) {
-        // Set data
-        $this->setData( $data );
-
-        // Get template
-        $this->_load_template( $template );
-
-        // Return updated doc
-        return $this->getDoc();
-    }
-
     // For
-    private function _for( $key, $occurs ) {
+    private function _for( $key, $occurs ): void {
         $for_pattern = '/@for\([\s]*' . $key . '[\s]+as[\s]([\w]*)[\s]*\)(.*?)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
 
@@ -243,7 +300,7 @@ class View {
         }
     }
 
-    private function _clear_for() {
+    private function _clear_for(): void {
         $for_pattern = '/@for\([\s]*[\w]*[\s]+as[\s]([\w]*)[\s]*\)(.*?)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
 
@@ -254,7 +311,7 @@ class View {
     }
 
     // If
-    private function _if() {
+    private function _if(): void {
         $if_pattern = '/@if\([\s]*([^:]*)[\s]*\)\:(.*?)(?:@else(.*?))?@endif/s';
         
         preg_match_all( $if_pattern, $this->_doc, $matches );
