@@ -12,7 +12,8 @@ matrix:
     - php: hhvm
 
 brefore_script:
+  - phpenv config-rm xdebug.ini
   - travis_retry composer self-update
   - travis_retry composer update --prefer-stable --no-interaction --prefer-source
 
-script: phpunit
+script: phpdbg -qrr phpunit
