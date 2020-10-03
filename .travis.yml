@@ -6,4 +6,4 @@ brefore_script:
   - composer self-update
   - composer install --prefer-source --no-interaction
 
-script: phpunit --bootstrap src/View.php tests
+script: phpunit tests
