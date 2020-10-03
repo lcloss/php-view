@@ -2,7 +2,7 @@ language: php
 php:
   - 7.3
 brefore_script:
-  - composer self-update
-  - composer install --prefer-source --no-interaction
+  - ls -la src
+  - composer install
 
 script: phpunit
