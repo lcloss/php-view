@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
-require_once('src' . DIRECTORY_SEPARATOR . 'View.php');
 use LCloss\View\View;
 
 final class ViewTest extends TestCase
@@ -14,6 +13,9 @@ final class ViewTest extends TestCase
             '<h1>Hello !</h1>', $view->view('view')
         );        
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCannotLoadATemplate(): void
     {
         $view = new View();
@@ -36,6 +38,9 @@ final class ViewTest extends TestCase
             '<h1>Hi Everyone</h1>', $view->view('', $data)
         );
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCanReplaceAKey(): void
     {
         $view = new View();
@@ -45,6 +50,9 @@ final class ViewTest extends TestCase
             '<h1>Hello Mon ami!</h1>', $view->view('view', $data)
         );
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCanExtend(): void
     {
         $view = new View();
