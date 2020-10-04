@@ -14,3 +14,8 @@ brefore_script:
   - travis_retry composer update --prefer-stable --no-interaction --prefer-source
 
 script: phpunit
+
+# require the branch name to be master (note for PRs this is the base branch name)
+notifications:
+  slack:
+    if: branch = master
