@@ -1,7 +1,8 @@
 # php-view
 Simple PHP package to manage views and templates
 
-[![Software License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/christophrumpel/chatbot-php-boilerplate/blob/master/LICENSE.txt)
+[![Software License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/lcloss/php-view/blob/master/LICENSE)
+![GitHub version](https://img.shields.io/badge/version-v0.1-brightgreen.svg)
 
 ## Introduction
 This is a simple template system to manage html and PHP.
