@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
-require_once('src' . DIRECTORY_SEPARATOR . 'View.php');
 use LCloss\View\View;
 
 final class ViewTest extends TestCase
 {
+    const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
+    
     public function testCanLoadATemplate(): void
     {
         $view = new View();
@@ -14,6 +15,9 @@ final class ViewTest extends TestCase
             '<h1>Hello !</h1>', $view->view('view')
         );        
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCannotLoadATemplate(): void
     {
         $view = new View();
@@ -36,6 +40,9 @@ final class ViewTest extends TestCase
             '<h1>Hi Everyone</h1>', $view->view('', $data)
         );
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCanReplaceAKey(): void
     {
         $view = new View();
@@ -45,6 +52,9 @@ final class ViewTest extends TestCase
             '<h1>Hello Mon ami!</h1>', $view->view('view', $data)
         );
     }
+    /**
+     * @depends testCanLoadATemplate
+     */
     public function testCanExtend(): void
     {
         $view = new View();
@@ -64,7 +74,7 @@ final class ViewTest extends TestCase
         $view = new View();
         $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
         $this->assertEquals(
-            "\r\n<header>This is Header</header>\r\n<p>This is Body</p>\r\n\r\n<footer>This is Footer</footer>\r\n", $view->view('sections')
+            self::BREAK_LINE . '<header>This is Header</header>' . self::BREAK_LINE . '<p>This is Body</p>' . self::BREAK_LINE . self::BREAK_LINE . '<footer>This is Footer</footer>' . self::BREAK_LINE, $view->view('sections')
         );
     }
     public function testCanProcessIf(): void
@@ -72,16 +82,16 @@ final class ViewTest extends TestCase
         $view = new View();
         $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
 
-        $doc = '<p>@if( count( $colors ) > 1 ):There are many colors.@endif\r\nThank you!</p>';
+        $doc = '<p>@if( count( $colors ) > 1 ):There are many colors.@endif' . self::BREAK_LINE . 'Thank you!</p>';
         $data = [
             'colors' => ['red', 'green', 'blue']
         ];
         $view->setDoc($doc);
         $this->assertEquals(
-            '<p>There are many colors.\r\nThank you!</p>', $view->view('', $data)
+            '<p>There are many colors.' . self::BREAK_LINE . 'Thank you!</p>', $view->view('', $data)
         );
 
-        $doc = '<p>@if( $count > 1 ):There are many colors\r\n.@endifThank you!</p>';
+        $doc = '<p>@if( $count > 1 ):There are many colors' . self::BREAK_LINE . '.@endifThank you!</p>';
         $data = [
             'count'     => -10
         ];

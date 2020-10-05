@@ -6,6 +6,7 @@ use Exception;
 class View {
     const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
     const DEFAULT_EXTENSION = '.tpl.php';
+    const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
     
     private $_view_path = "";
     private $_tpl_extension = "";
@@ -205,7 +206,7 @@ class View {
 
     // Extends template
     private function _extends(): void {
-        $extends_pattern = '/@extends\([\s]*([\w\.]*)[\s]*\)(?:\r\n)?/s';
+        $extends_pattern = '/@extends\([\s]*([\w\.]*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $extends_pattern, $this->_doc, $matches );
 
         foreach( $matches[0] as $i => $found ) {
@@ -231,7 +232,7 @@ class View {
 
     // Sections
     private function _sections(): void {
-        $sections_pattern = '/@section\([\s]*([\w\.]*)(?:\r\n)?[\s]*\)(.*?)@endsection(?:\r\n)?/s';
+        $sections_pattern = '/@section\([\s]*([\w\.]*)(?:' . self::BREAK_LINE . ')?[\s]*\)(.*?)@endsection(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $sections_pattern, $this->_doc, $matches );
 
         // Just set the sections on internal array
@@ -242,13 +243,13 @@ class View {
     }
 
     private function _yield( $key, $content ): void {
-        $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:\r\n)?/s';
+        $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
     }
 
     // Includes
     private function _includes(): void {
-        $includes_pattern = '/@include\([\s]*([\w\.]*)[\s]*\)(?:\r\n)?/s';
+        $includes_pattern = '/@include\([\s]*([\w\.]*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $includes_pattern, $this->_doc, $matches );
 
         foreach( $matches[0] as $i => $found ) {

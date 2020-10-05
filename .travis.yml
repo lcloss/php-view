@@ -1,6 +1,21 @@
 language: php
 php:
-  - 7.1
-  - 7.2
   - 7.3
   - 7.4
+  - hhvm
+
+matrix:
+  allow_failures:
+    - php: hhvm
+
+brefore_script:
+  - phpenv config-rm xdebug.ini
+  - travis_retry composer self-update
+  - travis_retry composer update --prefer-stable --no-interaction --prefer-source
+
+script: phpunit
+
+# require the branch name to be master (note for PRs this is the base branch name)
+notifications:
+  slack:
+    if: branch = master
