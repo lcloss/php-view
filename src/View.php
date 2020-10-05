@@ -6,7 +6,7 @@ use Exception;
 class View {
     const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
     const DEFAULT_EXTENSION = '.tpl.php';
-    const BREAK_LINE = ( PHP_OS == 'Linux' ? '\n' : '\r\n' );
+    const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
     
     private $_view_path = "";
     private $_tpl_extension = "";
