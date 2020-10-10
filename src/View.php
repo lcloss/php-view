@@ -101,7 +101,7 @@ class View {
      * @param optional array $data Keys for the View
      * @return string Document parsed
      */
-    public function view( $template = '', $data = [] ): string {
+    public function view( $template = '', $data = [], $final = true ): string {
         // Set data
         $this->setData( $data );
 
@@ -111,7 +111,7 @@ class View {
         }
 
         // Process includes and keys
-        $this->process();
+        $this->process($final);
 
         // Return updated doc
         return $this->getDoc();
@@ -121,7 +121,7 @@ class View {
      * Parse the document
      * @return void
      */
-    public function process() {
+    public function process($final = true) {
         // Sections template
         $this->_sections();
 
@@ -131,17 +131,23 @@ class View {
         // Includes templates
         $this->_includes();
 
-        // Replace all keys
+        // Replace all keys (Process for)
         $this->_replace_raw_keys();
-
         $this->_replace_keys();
 
+        // Process Ifs
         $this->_if();
 
-        $this->_clear_for();
-        
-        // Clear remainer keys
-        $this->_clear_keys();
+        if ( $final ) {
+            // Clear Fors
+            $this->_clear_for();
+            
+            // Clear remainer keys
+            $this->_clear_keys();
+
+            // Clear sections
+            $this->_clear_sections();
+        }
     }
 
     /**
@@ -218,7 +224,8 @@ class View {
                 $view = new View();
                 $view->setDefaultFolder( $this->getDefaultFolder() );
 
-                $doc = $view->view($matches[1][$i]);
+                $doc = $view->view($matches[1][$i], [], false);
+
                 $this->setDoc( $doc );
                 $this->_yield('content', $content);
 
@@ -245,6 +252,15 @@ class View {
     private function _yield( $key, $content ): void {
         $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
+    }
+
+    private function _clear_sections(): void {
+        $yield_pattern = '/@yield\([\s]*[^)]*[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
+        preg_match_all( $yield_pattern, $this->_doc, $matches );
+        foreach( $matches[0] as $i => $found ) {
+            $this->_doc = str_replace( $found, '', $this->_doc );
+        }
+
     }
 
     // Includes
@@ -294,7 +310,7 @@ class View {
                 }
                 $all_data = array_merge( $this->_data, $data );
                 $for->setData( $all_data );
-                $for->process();
+                $for->process(false);
                 $for_content .= $for->getDoc();
             }
             $this->_doc = str_replace($found, $for_content, $this->_doc);
