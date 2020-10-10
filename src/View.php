@@ -7,6 +7,7 @@ class View {
     const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
     const DEFAULT_EXTENSION = '.tpl.php';
     const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
+    const VALID_WORD = '\w\.\-';
     
     private $_view_path = "";
     private $_tpl_extension = "";
@@ -195,7 +196,7 @@ class View {
     }
 
     private function _replace_raw_keys(): void {
-        $keys_pattern = '/\!\$([\w\.]*)/s';
+        $keys_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
         preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         foreach($matches[0] as $i => $found) {
@@ -212,7 +213,7 @@ class View {
 
     // Extends template
     private function _extends(): void {
-        $extends_pattern = '/@extends\([\s]*([\w\.]*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
+        $extends_pattern = '/@extends\([\s]*([' . self::VALID_WORD . ']*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $extends_pattern, $this->_doc, $matches );
 
         foreach( $matches[0] as $i => $found ) {
@@ -239,7 +240,7 @@ class View {
 
     // Sections
     private function _sections(): void {
-        $sections_pattern = '/@section\([\s]*([\w\.]*)(?:' . self::BREAK_LINE . ')?[\s]*\)(.*?)@endsection(?:' . self::BREAK_LINE . ')?/s';
+        $sections_pattern = '/@section\([\s]*([' . self::VALID_WORD . ']*)(?:' . self::BREAK_LINE . ')?[\s]*\)(.*?)@endsection(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $sections_pattern, $this->_doc, $matches );
 
         // Just set the sections on internal array
@@ -265,7 +266,7 @@ class View {
 
     // Includes
     private function _includes(): void {
-        $includes_pattern = '/@include\([\s]*([\w\.]*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
+        $includes_pattern = '/@include\([\s]*([' . self::VALID_WORD . ']*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         preg_match_all( $includes_pattern, $this->_doc, $matches );
 
         foreach( $matches[0] as $i => $found ) {
@@ -335,7 +336,7 @@ class View {
 
         // Raw keys
         // --------
-        $key_pattern = '/\!\$([\w\.]*)/s';
+        $key_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
         foreach( $matches[0] as $i => $found ) {
             // Evaluate each condition
             // First, replace keys:
@@ -352,7 +353,7 @@ class View {
 
         // Other keys
         // ----------
-        $key_pattern = '/\$([\w\.]*)/s';
+        $key_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
         foreach( $matches[0] as $i => $found ) {
             // Evaluate each condition
             // First, replace keys:
