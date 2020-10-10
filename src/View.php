@@ -7,7 +7,7 @@ class View {
     const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
     const DEFAULT_EXTENSION = '.tpl.php';
     const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
-    const VALID_WORD = '\w\.\-';
+    const VALID_WORD = '\w\.\_';
     
     private $_view_path = "";
     private $_tpl_extension = "";
@@ -39,6 +39,10 @@ class View {
      */
     public function setDefaultTemplateExtension( $extension ): void {
         $this->_tpl_extension = $extension;
+    }
+
+    public function setKey( $key, $value ) {
+        $this->_data[$key] = $value;
     }
 
     /**
@@ -183,9 +187,11 @@ class View {
 
     // Replace keys
     private function _replace_keys(): void {
+        // printMessage("Replace keys");
         $data = $this->getData();
         
         foreach( $data as $key => $value ) {
+            // printMessage("Key (" . $key . ")");
             if ( !is_array( $value ) ) {
                 $key_pattern = '/{{[\s]*\$' . $key . '[\s]*}}/s';
                 $this->_doc = preg_replace( $key_pattern, $value, $this->_doc );
@@ -207,7 +213,7 @@ class View {
     }
 
     private function _clear_keys(): void {
-        $keys_pattern = '/{{[\s]*\$[\w]*[\s]*}}/s';
+        $keys_pattern = '/{{[\s]*\$[' . self::VALID_WORD . ']*[\s]*}}/s';
         $this->_doc = preg_replace( $keys_pattern, '', $this->_doc );
     }
 
@@ -223,6 +229,7 @@ class View {
 
                 // Extend template through View
                 $view = new View();
+                $view->setData($this->getData());
                 $view->setDefaultFolder( $this->getDefaultFolder() );
 
                 $doc = $view->view($matches[1][$i], [], false);
@@ -273,6 +280,7 @@ class View {
             if ( $found != "" ) {
                 // Get include content
                 $view = new View();
+                $view->setData($this->getData());
                 $view->setDefaultFolder( $this->getDefaultFolder() );
                 $doc = $view->get($matches[1][$i], $this->getData());
 
@@ -284,11 +292,14 @@ class View {
 
     // For
     private function _for( $key, $occurs ): void {
-        $for_pattern = '/@for\([\s]*' . $key . '[\s]+as[\s]([\w]*)[\s]*\)(.*?)@endfor/s';
+        $for_pattern = '/@for\([\s]*' . $key . '[\s]+as[\s]([' . self::VALID_WORD . ']*)[\s]*\)(.*?)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
+        // printMessage("For matches:");
+        // printVariable($matches);
 
         // Just set the fors on internal array
         $for = new View();
+        $for->setData($this->getData());
         $for->setDefaultFolder( $this->getDefaultFolder() );
 
         // Loop through for founds
@@ -319,7 +330,7 @@ class View {
     }
 
     private function _clear_for(): void {
-        $for_pattern = '/@for\([\s]*[\w]*[\s]+as[\s]([\w]*)[\s]*\)(.*?)@endfor/s';
+        $for_pattern = '/@for\([\s]*[' . self::VALID_WORD . ']*[\s]+as[\s]([' . self::VALID_WORD . ']*)[\s]*\)(.*?)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
 
         // Loop through for founds
@@ -330,12 +341,14 @@ class View {
 
     // If
     private function _if(): void {
-        $if_pattern = '/@if\([\s]*([^:]*)[\s]*\)\:(.*?)(?:@else(.*?))?@endif/s';
-        
+        $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:(.*?)(?:@else(.*?))?@endif/s';
         preg_match_all( $if_pattern, $this->_doc, $matches );
 
-        // Raw keys
-        // --------
+        // printMessage("If matches:");
+        // printVariable($matches);
+
+        // ** Raw keys
+        // -----------
         $key_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
         foreach( $matches[0] as $i => $found ) {
             // Evaluate each condition
@@ -351,38 +364,44 @@ class View {
             $this->_doc = str_replace( $found, $cond, $this->_doc );
         }
 
-        // Other keys
-        // ----------
+
+        // ** Other keys
+        // -------------
         $key_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
         foreach( $matches[0] as $i => $found ) {
             // Evaluate each condition
             // First, replace keys:
             preg_match_all( $key_pattern, $matches[1][$i], $key_matches );
+            // printMessage('Keys found:');
+            // printVariable($key_matches);
             $cond = $matches[1][$i];
+
+            $isAllKeyReplaced = true;
 
             foreach( $key_matches[0] as $j => $key_found ) {
                 if ( array_key_exists( $key_matches[1][$j], $this->_data )) {
+                    // printMessage("Key found: " . $key_matches[1][$j]);
                     $arr = [
                         $key_matches[1][$j] => $this->_data[$key_matches[1][$j]]
                     ];
                     extract($arr, EXTR_PREFIX_ALL, 'if');
-                    // printMessage('Key: ' . $key_matches[1][$j]);
-                    // printMessage($if_database);
-
-                    // $cond = str_replace( '$' . $key_matches[1][$j], "'" . $this->_data[$key_matches[1][$j]] . "'", $cond );
                     $cond = str_replace( '$' . $key_matches[1][$j], '$if_' . $key_matches[1][$j], $cond );
-                    // printMessage($cond);
                 } else {
+                    // printMessage("Key NOT found: " . $key_matches[1][$j]);
                     $cond = str_replace( '$' . $key_matches[1][$j], "''", $cond );
+                    $isAllKeyReplaced = false;
                 }
+                // printMessage($cond);
             }
-            $evaluation_cond = '$res = ' . $cond . ';';
-            eval($evaluation_cond);
-            if ($res) {
-                $this->_doc = str_replace( $found, $matches[2][$i], $this->_doc );
-            } else {
-                $this->_doc = str_replace( $found, $matches[3][$i], $this->_doc );
-            }
+            // if ( $isAllKeyReplaced ) {
+                $evaluation_cond = '$res = ' . $cond . ';';
+                eval($evaluation_cond);
+                if ($res) {
+                    $this->_doc = str_replace( $found, $matches[2][$i], $this->_doc );
+                } else {
+                    $this->_doc = str_replace( $found, $matches[3][$i], $this->_doc );
+                }
+            // }
         }
     }
 }
