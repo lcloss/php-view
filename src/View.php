@@ -187,11 +187,9 @@ class View {
 
     // Replace keys
     private function _replace_keys(): void {
-        // printMessage("Replace keys");
         $data = $this->getData();
         
         foreach( $data as $key => $value ) {
-            // printMessage("Key (" . $key . ")");
             if ( !is_array( $value ) ) {
                 $key_pattern = '/{{[\s]*\$' . $key . '[\s]*}}/s';
                 $this->_doc = preg_replace( $key_pattern, $value, $this->_doc );
@@ -292,37 +290,39 @@ class View {
 
     // For
     private function _for( $key, $occurs ): void {
-        $for_pattern = '/@for\([\s]*' . $key . '[\s]+as[\s]([' . self::VALID_WORD . ']*)[\s]*\)(.*?)@endfor/s';
+        $for_pattern = '/@for\([\s]*' . $key . '[\s]+as[\s]([' . self::VALID_WORD . ']+)[\s]*\)(.*?)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
-        // printMessage("For matches:");
-        // printVariable($matches);
-
-        // Just set the fors on internal array
-        $for = new View();
-        $for->setData($this->getData());
-        $for->setDefaultFolder( $this->getDefaultFolder() );
 
         // Loop through for founds
         foreach( $matches[0] as $i => $found ) {
-            $data = [];
             $for_content = "";
 
             // Foreach of the keys
             foreach( $occurs as $content ) {
-                $for->setDoc( $matches[2][$i] );
+                // Setup variables for each occurrence
+                $data = [];
+                // Just set the fors on internal array
+                $for = new View();
+                $for->setDefaultFolder( $this->getDefaultFolder() );
+                $for->setData($this->getData());
 
+                $for->setDoc( $matches[2][$i] );
+                
                 // If key is associative array...
                 if ( is_array( $content ) ) {
                     foreach( $content as $cnt_key => $cnt_value ) {
-                        $data[$matches[1][$i] . "." . $cnt_key] = $cnt_value;
+                        if ( is_array( $cnt_value ) ) {
+                            $this->_for( $matches[1][$i] . "." . $cnt_key, $cnt_value );
+                        } else {
+                            $for->setKey($matches[1][$i] . "." . $cnt_key, $cnt_value );
+                        }
                     }
                 } else {
                     // If key is simple array
-                    $data[$matches[1][$i]] = $content;
+                    $for->setKey($matches[1][$i], $content);
                 }
-                $all_data = array_merge( $this->_data, $data );
-                $for->setData( $all_data );
-                $for->process(false);
+
+                $for->process();
                 $for_content .= $for->getDoc();
             }
             $this->_doc = str_replace($found, $for_content, $this->_doc);
@@ -341,11 +341,9 @@ class View {
 
     // If
     private function _if(): void {
-        $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:(.*?)(?:@else(.*?))?@endif/s';
+        $if_pattern = '/@if\([\s]*([^:]+?)[\s]*\)\:([^\@]*?)(?:@else([^\@]*)?)?@endif/s';
         preg_match_all( $if_pattern, $this->_doc, $matches );
 
-        // printMessage("If matches:");
-        // printVariable($matches);
 
         // ** Raw keys
         // -----------
@@ -372,28 +370,21 @@ class View {
             // Evaluate each condition
             // First, replace keys:
             preg_match_all( $key_pattern, $matches[1][$i], $key_matches );
-            // printMessage('Keys found:');
-            // printVariable($key_matches);
             $cond = $matches[1][$i];
-
-            $isAllKeyReplaced = true;
+            $has_notfound_keys = false;
 
             foreach( $key_matches[0] as $j => $key_found ) {
                 if ( array_key_exists( $key_matches[1][$j], $this->_data )) {
-                    // printMessage("Key found: " . $key_matches[1][$j]);
                     $arr = [
-                        $key_matches[1][$j] => $this->_data[$key_matches[1][$j]]
+                        str_replace('.', '_', $key_matches[1][$j]) => $this->_data[$key_matches[1][$j]]
                     ];
                     extract($arr, EXTR_PREFIX_ALL, 'if');
-                    $cond = str_replace( '$' . $key_matches[1][$j], '$if_' . $key_matches[1][$j], $cond );
+                    $cond = str_replace( '$' . $key_matches[1][$j], '$if_' . str_replace('.', '_', $key_matches[1][$j]), $cond );
                 } else {
-                    // printMessage("Key NOT found: " . $key_matches[1][$j]);
-                    $cond = str_replace( '$' . $key_matches[1][$j], "''", $cond );
-                    $isAllKeyReplaced = false;
+                    $has_notfound_keys = true;
                 }
-                // printMessage($cond);
             }
-            // if ( $isAllKeyReplaced ) {
+            if ( !$has_notfound_keys ) {
                 $evaluation_cond = '$res = ' . $cond . ';';
                 eval($evaluation_cond);
                 if ($res) {
@@ -401,7 +392,7 @@ class View {
                 } else {
                     $this->_doc = str_replace( $found, $matches[3][$i], $this->_doc );
                 }
-            // }
+            }
         }
     }
 }
