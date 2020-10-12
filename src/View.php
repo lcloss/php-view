@@ -1,6 +1,8 @@
 <?php declare(strict_types=1);
 
 namespace LCloss\View;
+
+use LCloss\View\Debug;
 use Exception;
 
 class View {
@@ -18,8 +20,13 @@ class View {
     private $_for_count = 0;
     private $_if = [];
     private $_if_count = 0;
+    private $_debug = NULL;
 
     public function __construct() {
+        // $this->_debug = Debug::getInstance( Debug::DEBUG_INFO );
+        // $this->_debug = Debug::getInstance( Debug::DEBUG_ALL );
+        $this->_debug = Debug::getInstance( Debug::DEBUG_NONE );
+
         $this->setDefaultFolder( self::DEFAULT_VIEW_PATH );
         $this->setDefaultTemplateExtension( self::DEFAULT_EXTENSION );
     }
@@ -179,6 +186,10 @@ class View {
             $this->_loadTemplate( $template );
         }
 
+        return $this->parse($final);
+    }
+
+    public function parse($final = false): String {
         // Process includes and keys
         $this->process();
 
@@ -425,6 +436,8 @@ class View {
      * @return void
      */
     private function _extractIfAndFor(): void {
+        $this->_debug->printWhere();
+
         $has_any = true;
         while( true == $has_any ) {
             $has_any_for = $this->_extractFor();
@@ -439,6 +452,8 @@ class View {
      * @return bool if there any replacement
      */
     private function _extractFor(): bool {
+        $this->_debug->printWhere();
+
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
 
@@ -446,6 +461,8 @@ class View {
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
+                $this->_debug->printInfo( 'Key: ' . $matches[1][$i]);
+
                 $has_any = true;
                 $key = $this->setNewFor( $matches[1][$i], $matches[2][$i], $matches[3][$i] );
                 $this->_doc = str_replace( $found, '{% for $' . $key . ' %}', $this->_doc);
@@ -460,6 +477,8 @@ class View {
      * @return bool if there any replacement
      */
     private function _extractIf(): bool {
+        $this->_debug->printWhere();
+
         $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+))?@endif/s';
         preg_match_all( $if_pattern, $this->_doc, $matches );
 
@@ -482,10 +501,13 @@ class View {
      * @return void
      */
     private function _replaceIfAndFor(): void {
+        $this->_debug->printWhere();
+
         $has_any = true;
         while( $has_any ) {
             $has_any_for = $this->_replaceFor();
             $has_any_if = $this->_replaceIf();
+            $this->_replaceKeys();
 
             $has_any = ( $has_any_for || $has_any_if );
         }
@@ -496,6 +518,8 @@ class View {
      * @return bool if happens any replacement
      */
     private function _replaceFor(): bool {
+        $this->_debug->printWhere();
+
         $for_pattern = '/{% for \$([' . self::VALID_WORD . ']+) %}/s';
         preg_match_all( $for_pattern, $this->_doc, $matches);
 
@@ -503,6 +527,7 @@ class View {
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
+                $this->_debug->printInfo( 'Key: ' . $matches[1][$i]);
                 $key = $matches[1][$i];
                 $data = $this->_for[$key];
 
@@ -511,17 +536,27 @@ class View {
                 $for_content = "";
                 foreach( $occurs as $item ) {
                     $for_template = $this->createNew();
+                    $content = $data['content'];
+                    $this->_debug->printInfo( 'Set Content: ' . htmlentities($content));
                     $for_template->setDoc( $data['content'] );
 
                     if ( is_array( $item ) ) {
                         foreach( $item as $item_key => $item_value ) {
+                            $this->_debug->printInfo( 'Set Key: ' . $data['sub'] . '.' . $item_key);
+                            if ( is_array( $item_value )) {
+                                $this->_debug->printInfo( $data['sub'] . '.' . $item_key . ' = (array)');
+                            } else {
+                                $this->_debug->printInfo( $data['sub'] . '.' . $item_key . ' = ' . $item_value);
+                            }
                             $for_template->setKey( $data['sub'] . '.' . $item_key, $item_value);
                         }
                     } else {
+                        $this->_debug->printInfo( 'Set Key: ' . $data['sub']);
                         $for_template->setKey( $data['sub'], $item );
                     }
-                    
-                    $for_content .= $for_template->view();
+                    $content = $for_template->parse();
+                    $this->_debug->printInfo( 'Content: ' . htmlentities($content));
+                    $for_content .= $content;
                 }
 
                 $this->_doc = str_replace( $found, $for_content, $this->_doc );
@@ -537,6 +572,8 @@ class View {
      * @return bool if happens any replacement
      */
     private function _replaceIf(): bool {
+        $this->_debug->printWhere();
+
         $if_pattern = '/{% if \$([' . self::VALID_WORD . ']+) %}/s';
         preg_match_all( $if_pattern, $this->_doc, $matches);
 
@@ -547,6 +584,7 @@ class View {
                 $key = $matches[1][$i];
 
                 if ( array_key_exists( $key, $this->_if )) {
+                    $this->_debug->printInfo(' Replace key:' . $key);
                     $data = $this->_if[$key];
 
                     $cond = $data['cond'];
@@ -572,6 +610,7 @@ class View {
                         $if_content = $data['else'];
                     }
     
+                    $this->_debug->printInfo(' Set content: ' . htmlentities($if_content));
                     $this->_doc = str_replace( $found, $if_content, $this->_doc );
                     $has_any = true;
                 }
