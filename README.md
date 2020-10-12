@@ -2,7 +2,7 @@
 Simple PHP package to manage views and templates
 
 [![Software License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/lcloss/php-view/blob/master/LICENSE)
-![GitHub version](https://img.shields.io/badge/version-v0.1-brightgreen.svg)
+![GitHub version](https://img.shields.io/badge/version-v1.1-brightgreen.svg)
 ![Travis CI Status](https://travis-ci.org/lcloss/php-view.svg?branch=master)
 
 ## Introduction

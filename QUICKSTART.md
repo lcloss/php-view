@@ -94,11 +94,11 @@ For example:
 ```html
 <table>
     <tr>
-        @for( columns as column )
+        @for( $columns as $column )
         <th>{{ $column.name }}</th>
         @endfor
     </tr>
-    @for( rows as row )
+    @for( $rows as $row )
     <tr>
         <td>{{ $row.age }}</td>
     </tr>
@@ -162,7 +162,7 @@ $view->view('template', $data);
 ```
 You need to modify your code to match the new data:
 ```html
-    @for( rows as row )
+    @for( $rows as $row )
     <tr>
         <td>{{ $row.birthdate }}</td>
     </tr>
@@ -174,13 +174,13 @@ Look to this code:
 ```html
 <table>
     <tr>
-        @for( columns as column )
+        @for( $columns as $column )
         <th>{{ $column.name }}</th>
         @endfor
     </tr>
-    @for( rows as row )
+    @for( $rows as $row )
     <tr>
-        @for( columns as column )
+        @for( $columns as $column )
         <td>{{ $row.!$column.name }}</td>
         @endfor
     </tr>
@@ -213,7 +213,7 @@ You can easly use If's on your template:
 ```html
 @if( count( $rows ) > 0 ):
     <table>
-    @for( rows as row )
+    @for( $rows as $row )
     <tr>
         <td>{{ $row.name }}</td>
         <td>{{ $row.age }}</td>
