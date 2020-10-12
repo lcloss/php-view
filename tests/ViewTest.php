@@ -95,6 +95,9 @@ final class ViewTest extends TestCase
         $data = [
             'count'     => -10
         ];
+
+        $view = new View();
+        $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
         $view->setDoc($doc);
         $this->assertEquals(
             '<p>Thank you!</p>', $view->view('', $data)
@@ -104,10 +107,17 @@ final class ViewTest extends TestCase
         $data = [
             'user' => 'Logged User'
         ];
+
+        $view = new View();
+        $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
         $view->setDoc($doc);
         $this->assertEquals(
             '<p>Hi Logged User!</p>', $view->view('', $data)
         );
+        $doc = '<p>@if( $user != "" ):Hi {{ $user }}!@else Please, log on.@endif</p>';
+
+        $view = new View();
+        $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
         $view->setDoc($doc);
         $this->assertEquals(
             '<p> Please, log on.</p>', $view->view('')
@@ -118,7 +128,7 @@ final class ViewTest extends TestCase
         $view = new View();
         $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
 
-        $doc = '<p>The colors are: @for( colors as color ){{ $color }} @endfor</p>';
+        $doc = '<p>The colors are: @for( $colors as $color ){{ $color }} @endfor</p>';
         $data = [
             'colors' => [
                 'red', 'green', 'blue'
@@ -129,7 +139,7 @@ final class ViewTest extends TestCase
             '<p>The colors are: red green blue </p>', $view->view('', $data)
         );
 
-        $doc = '<p>The colors are: @for( colors as color ){{ $color.name }} @endfor</p>';
+        $doc = '<p>The colors are: @for( $colors as $color ){{ $color.name }} @endfor</p>';
         $data = [
             'colors' => [
                 ['name' => 'red'],
