@@ -180,8 +180,12 @@ class View {
         }
 
         // Process includes and keys
-        $this->process($final);
+        $this->process();
 
+        if ( $final ) {
+            $this->cleanup();
+        }
+        
         // Return updated doc
         return $this->getDoc();
     }
@@ -190,7 +194,7 @@ class View {
      * Parse the document
      * @return void
      */
-    public function process($final = true) {
+    public function process() {
         // Extract all sections from template
         $this->_extractSections();
 
@@ -625,7 +629,7 @@ class View {
      * Cleanup template from missed @for
      * @return bool if there were any replacement
      */
-    private function _clarFors(): bool {
+    private function _clearFors(): bool {
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
         preg_match_all( $for_pattern, $this->_doc, $matches );
 

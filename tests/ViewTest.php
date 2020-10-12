@@ -12,7 +12,7 @@ final class ViewTest extends TestCase
         $view = new View();
         $view->setDefaultFolder('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
         $this->assertEquals(
-            '<h1>Hello {{ $user }}!</h1>', $view->view('view')
+            '<h1>Hello !</h1>', $view->view('view')
         );        
     }
     /**
