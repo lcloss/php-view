@@ -179,6 +179,10 @@ class View {
             $this->_loadTemplate( $template );
         }
 
+        return $this->parse($final);
+    }
+
+    public function parse($final = false): String {
         // Process includes and keys
         $this->process();
 
@@ -521,7 +525,7 @@ class View {
                         $for_template->setKey( $data['sub'], $item );
                     }
                     
-                    $for_content .= $for_template->view();
+                    $for_content .= $for_template->parse();
                 }
 
                 $this->_doc = str_replace( $found, $for_content, $this->_doc );
