@@ -31,7 +31,7 @@ The default folder for template views is `resources\view` folder.
 
 You can change this by:
 ```php
-$view->setDefaultFolder( 'views/' );
+$view->setPath( 'views/' );
 ```
 
 ### Template extension

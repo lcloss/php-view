@@ -2,58 +2,33 @@
 
 namespace LCloss\View;
 
-use LCloss\View\Debug;
+use LCloss\View\Loader;
 use Exception;
 
 class View {
-    const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
-    const DEFAULT_EXTENSION = '.tpl.php';
     const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
-    const VALID_WORD = '\w\.\_';
+    const VALID_WORD = '\w\.\_\-';
     
-    private $_view_path = "";
-    private $_tpl_extension = "";
-    private $_doc = "";
+    protected $loader = NULL;
+
     private $_sections = [];
-    private $_data = [];
     private $_for = [];
     private $_for_count = 0;
     private $_if = [];
     private $_if_count = 0;
-    private $_debug = NULL;
 
     public function __construct() {
-        // $this->_debug = Debug::getInstance( Debug::DEBUG_INFO );
-        // $this->_debug = Debug::getInstance( Debug::DEBUG_ALL );
-        $this->_debug = Debug::getInstance( Debug::DEBUG_NONE );
+        $this->loader = new Loader();
+    }
 
-        $this->setDefaultFolder( self::DEFAULT_VIEW_PATH );
-        $this->setDefaultTemplateExtension( self::DEFAULT_EXTENSION );
+    public function setPath( $path )
+    {
+        $this->loader->setPath( $path );
     }
 
     // Setters
-    /**
-     * Set default folder for views.
-     * If not used, default folder is resources/views
-     * @param string $folder Folder where views are
-     * @return void
-     */
-    public function setDefaultFolder( $folder ): void {
-        $this->_view_path = $folder;
-    }
-
-    /**
-     * Set default template extension for view.
-     * If not used, default extension is .tpl.php
-     * @param string $extension Extension for views
-     * @return void
-     */
-    public function setDefaultTemplateExtension( $extension ): void {
-        $this->_tpl_extension = $extension;
-    }
-
     public function setKey( $key, $value ) {
-        $this->_data[$key] = $value;
+        $this->loader->setKey( $key, $value );
     }
 
     /**
@@ -62,9 +37,10 @@ class View {
      * @return void
      */
     public function setData( $data ): void {
-        foreach( $data as $key => $value ) {
-            $this->setKey( $key, $value );
-        }
+        $this->loader->setData( $data );
+        // foreach( $data as $key => $value ) {
+        //     $this->setKey( $key, $value );
+        // }
     }
 
     /**
@@ -74,7 +50,8 @@ class View {
      * @return void
      */
     public function setDoc( $doc ): void {
-        $this->_doc = $doc;
+        $this->loader->set( $doc );
+        // $this->_doc = $doc;
     }
 
     /**
@@ -141,35 +118,6 @@ class View {
         }
     }
 
-    // Getters
-    /**
-     * Get default folder.
-     * @return string Folder 
-     */
-    public function getDefaultFolder(): string {
-        return $this->_view_path;
-    }
-
-    /**
-     * Get document
-     * @return string Document
-     */
-    public function getDoc(): string {
-        return $this->_doc;
-    }
-
-    /**
-     * Get template keys
-     * @return array Keys
-     */
-    public function getData(): array {
-        return $this->_data;
-    }
-    
-    public function getKey( $key ) {
-        return $this->_data[$key];
-    }
-
     // Return view
     /**
      * Process the view and return result.
@@ -183,7 +131,8 @@ class View {
 
         // Get template
         if ( $template != '' ) {
-            $this->_loadTemplate( $template );
+            $this->loader->setTemplate( $template );
+            $this->loader->parse(false);
         }
 
         return $this->parse($final);
@@ -198,7 +147,7 @@ class View {
         }
         
         // Return updated doc
-        return $this->getDoc();
+        return $this->loader->get();
     }
 
     /**
@@ -238,12 +187,14 @@ class View {
      */
     private function _extractSections(): void {
         $sections_pattern = '/@section\([\s]*([' . self::VALID_WORD . ']*)(?:' . self::BREAK_LINE . ')?[\s]*\)(.*?)@endsection(?:' . self::BREAK_LINE . ')?/s';
-        preg_match_all( $sections_pattern, $this->_doc, $matches );
+        // preg_match_all( $sections_pattern, $this->_doc , $matches );
+        $matches = $this->loader->extract( $sections_pattern );
 
         // Just set the sections on internal array
         foreach( $matches[0] as $i => $found ) {
             $this->setSection($matches[1][$i], $matches[2][$i]);
-            $this->_doc = str_replace($found, '', $this->_doc);
+            $this->loader->replace( $found, '' );
+            // $this->_doc = str_replace($found, '', $this->_doc);
         }
     }
 
@@ -253,13 +204,15 @@ class View {
      */
     private function _mergeExtends(): void {
         $extends_pattern = '/@extends\([\s]*([' . self::VALID_WORD . ']*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        preg_match_all( $extends_pattern, $this->_doc, $matches );
+        // preg_match_all( $extends_pattern, $this->_doc , $matches );
+        $matches = $this->loader->extract( $extends_pattern );
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
                 // Clear @extends key
-                $this->_doc = str_replace($found, '', $this->_doc);
-                $this_content = $this->getDoc();
+                $this->loader->replace( $found, '' );
+                // $this->_doc = str_replace($found, '', $this->_doc);
+                $this_content = $this->loader->get();
 
                 // Create a new view from extended layout
                 $extended = $this->createNew();
@@ -281,8 +234,8 @@ class View {
      */
     public function createNew(): View {
         $view = new View();
-        $view->setDefaultFolder( $this->getDefaultFolder() );
-        $view->setData( $this->getData() );
+        $view->setPath( $this->loader->path() );
+        $view->setData( $this->loader->data() );
         $view->setIfs( $this->_if );
         $view->setFors( $this->_for );
         return $view;
@@ -296,7 +249,8 @@ class View {
      */
     private function _replaceYield( String $key, String $content ): void {
         $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
+        $this->loader->pregReplace( $yield_pattern, $content );
+        // $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
     }
 
     /**
@@ -316,7 +270,8 @@ class View {
      */
     private function _includeIncludes(): void {
         $includes_pattern = '/@include\([\s]*([' . self::VALID_WORD . ']*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        preg_match_all( $includes_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $includes_pattern );
+        // preg_match_all( $includes_pattern, $this->_doc, $matches );
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
@@ -325,25 +280,9 @@ class View {
                 $include_doc = $include->view($matches[1][$i], [], false);
                 
                 // Replace in the doc
-                $this->_doc = str_replace($found, $include_doc, $this->_doc);
+                $this->loader->replace( $found, $include_doc );
+                // $this->_doc = str_replace($found, $include_doc, $this->_doc);
             }
-        }
-    }
-
-    /**
-     * Load template from file system.
-     * @param String $template Template file to load
-     * @return void
-     */
-    private function _loadTemplate( String $template ): void {
-        $template = str_replace('.', DIRECTORY_SEPARATOR, $template);
-        $filename = $this->getDefaultFolder() . $template . $this->_tpl_extension;
-        if ( !file_exists($filename) ) {
-            throw new Exception(
-                sprintf('"%s" file not found.', $filename)
-            );
-        } else {
-            $this->setDoc( file_get_contents( $filename ) );
         }
     }
 
@@ -367,14 +306,15 @@ class View {
      */
     private function _replaceRawKeys(): void {
         $keys_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
-        preg_match_all( $keys_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $keys_pattern );
+        // preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         foreach($matches[0] as $i => $found) {
             $key = $matches[1][$i];
-            // Only replaces keys found on the $_data
-            if ( array_key_exists( $key, $this->_data )) {
-                if ( !is_array( $this->getKey($key) )) {
-                    $this->_doc = str_replace( $found, $this->getKey($key), $this->_doc );
+            // Only replaces keys found on the data
+            if ( $this->loader->keyExists( $key ) ) {
+                if ( !is_array( $this->loader->key($key) )) {
+                    $this->loader->replace( $found, $this->loader->key($key) );
                 }
             }
         }
@@ -387,16 +327,17 @@ class View {
      */
     private function _getIfKeys(): array {
         $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
-        preg_match_all( $keys_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $keys_pattern );
+        // preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         $if_vars = [];
         foreach( $matches[0] as $i => $found ) {
             $key = str_replace( '.', '_', $matches[1][$i]);
 
-            if ( array_key_exists( $matches[1][$i], $this->_data )) {
+            if ( $this->loader->keyExists( $matches[1][$i] )) {
                 $if_vars[$key] = [
                     'original'  => $matches[1][$i],
-                    'content'   => $this->getKey($matches[1][$i]),
+                    'content'   => $this->loader->key($matches[1][$i]),
                 ];
             } else {
                 $if_vars[$key] = [
@@ -411,19 +352,20 @@ class View {
 
     /**
      * Lookup on the view for lonely keys.
-     * These keys can be replaced if we already have on our $_data
+     * These keys can be replaced if we already have on our data
      * @return void
      */
     private function _replaceLonelyKeys(): void {
         $keys_pattern = '/{{[\s]*\$([' . self::VALID_WORD . ']*)[\s]*}}/s';
-        preg_match_all( $keys_pattern, $this->_doc, $matches );
+        // preg_match_all( $keys_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
             $key = $matches[1][$i];
-            // Only replaces keys found on the $_data
-            if ( array_key_exists( $key, $this->_data )) {
-                if ( !is_array( $this->getKey($key) )) {
-                    $this->_doc = str_replace( $found, $this->getKey($key), $this->_doc );
+            // Only replaces keys found on the data
+            if ( $this->loader->keyExists( $key ) ) {
+                if ( !is_array( $this->loader->key($key) )) {
+                    $this->loader->replace( $found, $this->loader->key($key) );
                 }
             }
         }
@@ -436,8 +378,6 @@ class View {
      * @return void
      */
     private function _extractIfAndFor(): void {
-        $this->_debug->printWhere();
-
         $has_any = true;
         while( true == $has_any ) {
             $has_any_for = $this->_extractFor();
@@ -452,20 +392,18 @@ class View {
      * @return bool if there any replacement
      */
     private function _extractFor(): bool {
-        $this->_debug->printWhere();
-
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
-        preg_match_all( $for_pattern, $this->_doc, $matches );
+        // preg_match_all( $for_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
-                $this->_debug->printInfo( 'Key: ' . $matches[1][$i]);
-
                 $has_any = true;
                 $key = $this->setNewFor( $matches[1][$i], $matches[2][$i], $matches[3][$i] );
-                $this->_doc = str_replace( $found, '{% for $' . $key . ' %}', $this->_doc);
+                // $this->_doc = str_replace( $found, '{% for $' . $key . ' %}', $this->_doc);
+                $this->loader->replace( $found, '{% for $' . $key . ' %}' );
             }
         }
 
@@ -477,10 +415,9 @@ class View {
      * @return bool if there any replacement
      */
     private function _extractIf(): bool {
-        $this->_debug->printWhere();
-
-        $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+))?@endif/s';
-        preg_match_all( $if_pattern, $this->_doc, $matches );
+        $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)*?)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)*?))?@endif/s';
+        // preg_match_all( $if_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
 
@@ -488,7 +425,8 @@ class View {
             if ( "" != $found ) {
                 $has_any = true;
                 $key = $this->setNewIf( $matches[1][$i], $matches[2][$i], $matches[3][$i] );
-                $this->_doc = str_replace( $found, '{% if $' . $key . ' %}', $this->_doc);
+                // $this->_doc = str_replace( $found, '{% if $' . $key . ' %}', $this->_doc);
+                $this->loader->replace( $found, '{% if $' . $key . ' %}' );
             }
         }
 
@@ -501,8 +439,6 @@ class View {
      * @return void
      */
     private function _replaceIfAndFor(): void {
-        $this->_debug->printWhere();
-
         $has_any = true;
         while( $has_any ) {
             $has_any_for = $this->_replaceFor();
@@ -518,48 +454,38 @@ class View {
      * @return bool if happens any replacement
      */
     private function _replaceFor(): bool {
-        $this->_debug->printWhere();
-
         $for_pattern = '/{% for \$([' . self::VALID_WORD . ']+) %}/s';
-        preg_match_all( $for_pattern, $this->_doc, $matches);
+        // preg_match_all( $for_pattern, $this->_doc, $matches);
+        $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
-                $this->_debug->printInfo( 'Key: ' . $matches[1][$i]);
                 $key = $matches[1][$i];
                 $data = $this->_for[$key];
 
-                $occurs = $this->getKey( $data['var'] );
+                $occurs = $this->loader->key( $data['var'] );
 
                 $for_content = "";
+
                 foreach( $occurs as $item ) {
                     $for_template = $this->createNew();
                     $content = $data['content'];
-                    $this->_debug->printInfo( 'Set Content: ' . htmlentities($content));
                     $for_template->setDoc( $data['content'] );
 
                     if ( is_array( $item ) ) {
                         foreach( $item as $item_key => $item_value ) {
-                            $this->_debug->printInfo( 'Set Key: ' . $data['sub'] . '.' . $item_key);
-                            if ( is_array( $item_value )) {
-                                $this->_debug->printInfo( $data['sub'] . '.' . $item_key . ' = (array)');
-                            } else {
-                                $this->_debug->printInfo( $data['sub'] . '.' . $item_key . ' = ' . $item_value);
-                            }
                             $for_template->setKey( $data['sub'] . '.' . $item_key, $item_value);
                         }
                     } else {
-                        $this->_debug->printInfo( 'Set Key: ' . $data['sub']);
                         $for_template->setKey( $data['sub'], $item );
                     }
                     $content = $for_template->parse();
-                    $this->_debug->printInfo( 'Content: ' . htmlentities($content));
                     $for_content .= $content;
                 }
 
-                $this->_doc = str_replace( $found, $for_content, $this->_doc );
+                $this->loader->replace( $found, $for_content );
                 $has_any = true;
             }
         }
@@ -572,10 +498,9 @@ class View {
      * @return bool if happens any replacement
      */
     private function _replaceIf(): bool {
-        $this->_debug->printWhere();
-
         $if_pattern = '/{% if \$([' . self::VALID_WORD . ']+) %}/s';
-        preg_match_all( $if_pattern, $this->_doc, $matches);
+        // preg_match_all( $if_pattern, $this->_doc, $matches);
+        $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
 
@@ -584,7 +509,6 @@ class View {
                 $key = $matches[1][$i];
 
                 if ( array_key_exists( $key, $this->_if )) {
-                    $this->_debug->printInfo(' Replace key:' . $key);
                     $data = $this->_if[$key];
 
                     $cond = $data['cond'];
@@ -610,8 +534,8 @@ class View {
                         $if_content = $data['else'];
                     }
     
-                    $this->_debug->printInfo(' Set content: ' . htmlentities($if_content));
-                    $this->_doc = str_replace( $found, $if_content, $this->_doc );
+                    // $this->_doc = str_replace( $found, $if_content, $this->_doc );
+                    $this->loader->replace( $found, $if_content );
                     $has_any = true;
                 }
             }
@@ -636,9 +560,11 @@ class View {
      */
     private function _clearSections(): void {
         $yield_pattern = '/@yield\([\s]*[^)]*[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        preg_match_all( $yield_pattern, $this->_doc, $matches );
+        // preg_match_all( $yield_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $yield_pattern );
         foreach( $matches[0] as $i => $found ) {
-            $this->_doc = str_replace( $found, '', $this->_doc );
+            // $this->_doc = str_replace( $found, '', $this->_doc );
+            $this->loader->replace( $found, '' );
         }
     }
 
@@ -648,7 +574,8 @@ class View {
      */
     private function _clearKeys(): void {
         $keys_pattern = '/{{[\s]*\$[' . self::VALID_WORD . ']*[\s]*}}/s';
-        $this->_doc = preg_replace( $keys_pattern, '', $this->_doc );
+        // $this->_doc = preg_replace( $keys_pattern, '', $this->_doc );
+        $this->loader->pregReplace( $keys_pattern, '' );
     }
 
     /**
@@ -670,12 +597,14 @@ class View {
      */
     private function _clearFors(): bool {
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
-        preg_match_all( $for_pattern, $this->_doc, $matches );
+        // preg_match_all( $for_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
         foreach( $matches[0] as $i => $found) {
             if ( "" != $found ) {
-                $this->_doc = str_replace( $found, '', $this->_doc );
+                // $this->_doc = str_replace( $found, '', $this->_doc );
+                $this->loader->replace( $found, '' );
                 $has_any = true;
             }
         }
@@ -689,13 +618,15 @@ class View {
      */
     private function _clearIfs(): bool {
         $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+))?@endif/s';
-        preg_match_all( $if_pattern, $this->_doc, $matches );
+        // preg_match_all( $if_pattern, $this->_doc, $matches );
+        $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
-                $this->_doc = str_replace( $found, '', $this->_doc);
+                // $this->_doc = str_replace( $found, '', $this->_doc);
+                $this->loader->replace( $found, '' );
                 $has_any = true;
             }
         }
