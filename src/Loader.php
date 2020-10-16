@@ -1,19 +1,25 @@
 <?php
 namespace LCloss\View;
 
+use LCloss\View\Environment;
+
 class Loader
 {
-    const DEFAULT_VIEW_PATH = '..' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR;
-    const DEFAULT_EXTENSION = '.tpl.php';
-
+    protected $env = NULL;
     protected $path = "";
     protected $extension = "";
     protected $template = "";
     protected $doc = "";
     protected $data = [];
 
-    public function __construct( $path = self::DEFAULT_VIEW_PATH, $ext = self::DEFAULT_EXTENSION )
+    public function __construct( $path = NULL, $ext = NULL )
     {
+        $base = implode( DIRECTORY_SEPARATOR, array_slice( explode( DIRECTORY_SEPARATOR, __DIR__ ), 0, -4 )) . DIRECTORY_SEPARATOR;
+        $this->env = Environment::load( $base . '.env' );
+
+        $path = ( !empty($path) ? $path  : $base . $this->env->get('path') );
+        $ext = ( !empty($ext) ? $ext : $this->env->get('extension') );
+
         $this->setPath( $path );
         $this->setExtension( $ext );
     }
@@ -26,7 +32,7 @@ class Loader
      */
     public function setPath( $folder ): void 
     {
-        $this->path = $folder;
+        $this->path = str_replace( '.', DIRECTORY_SEPARATOR, $folder) . DIRECTORY_SEPARATOR;
     }
 
     public function setTemplate( $template ): void
@@ -123,7 +129,7 @@ class Loader
         }
 
         $template = str_replace('.', DIRECTORY_SEPARATOR, $this->template);
-        $filename = $this->path() . $template . $this->extension;
+        $filename = $this->path() . $template . '.' . $this->extension;
 
         if ( !file_exists( $filename ) ) {
             // return '';

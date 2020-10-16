@@ -3,6 +3,7 @@
     "description": "Simple PHP package to manage views and templates",
     "keywords": ["php","view","template"],
     "homepage": "https://php-view.devcorner.io",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
