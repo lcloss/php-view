@@ -2,6 +2,7 @@
 
 namespace LCloss\View;
 
+use LCloss\Env\Environment;
 use LCloss\View\Loader;
 use Exception;
 
@@ -17,15 +18,44 @@ class View {
     private $_if = [];
     private $_if_count = 0;
 
-    public function __construct() {
+    public function __construct( $path = NULL, $ext = NULL ) 
+    {
         $this->loader = new Loader();
+
+        if ( !is_null( $path ) ) {
+            $this->setPath( $path );
+        }
+        if ( !is_null( $ext ) ) {
+            $this->setExtension( $ext );
+        }
     }
 
+    public function fromEnv( $path, $env_file = '.env' )
+    {
+        $env = Environment::getInstance( $env_file, $path );
+        xdebug_var_dump($env);
+        $this->setBase( $env->base_dir );
+        $this->setPath( $env->view['path'] );
+        $this->setExtension( $env->view['extension'] );
+    }
+
+    public function setBase( $folder )
+    {
+        if ( substr( $folder, -1 ) != DIRECTORY_SEPARATOR ) {
+            $folder .= DIRECTORY_SEPARATOR;
+        }
+        $this->loader->setBase( $folder );
+    }
     public function setPath( $path )
     {
         $this->loader->setPath( $path );
     }
 
+    public function setExtension( $ext )
+    {
+        $this->loader->setExtension( $ext );
+    }
+    
     // Setters
     public function setKey( $key, $value ) {
         $this->loader->setKey( $key, $value );
@@ -216,6 +246,9 @@ class View {
 
                 // Create a new view from extended layout
                 $extended = $this->createNew();
+                // xdebug_var_dump($matches[1][$i]);
+                // xdebug_var_dump($extended);
+                // $extended->setPath( '' );
                 $extended_doc = $extended->view($matches[1][$i], [], false);
 
                 // Replace current content with the extended view
@@ -234,7 +267,9 @@ class View {
      */
     public function createNew(): View {
         $view = new View();
+        $view->setBase( $this->loader->base() );
         $view->setPath( $this->loader->path() );
+        $view->setExtension( $this->loader->extension() );
         $view->setData( $this->loader->data() );
         $view->setIfs( $this->_if );
         $view->setFors( $this->_for );

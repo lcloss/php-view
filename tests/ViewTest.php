@@ -9,8 +9,8 @@ final class ViewTest extends TestCase
     
     public function testCanLoadATemplate(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $this->assertEquals(
             '<h1>Hello !</h1>', $view->view('view')
         );        
@@ -20,16 +20,16 @@ final class ViewTest extends TestCase
      */
     public function testCannotLoadATemplate(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('".\tests\notfound.tpl.php" file not found.', $view->view('notfound')
         );        
     }
     public function testCanProcessDocument(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
 
         $doc = '<h1>Hi {{ $target }}</h1>';
         $data = [
@@ -45,8 +45,8 @@ final class ViewTest extends TestCase
      */
     public function testCanReplaceAKey(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $data = ['user' => 'Mon ami'];
         $this->assertEquals(
             '<h1>Hello Mon ami!</h1>', $view->view('view', $data)
@@ -57,8 +57,8 @@ final class ViewTest extends TestCase
      */
     public function testCanExtend(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $this->assertEquals(
             "<div><p>Content</p></div>", $view->view('extends')
         );
@@ -71,16 +71,16 @@ final class ViewTest extends TestCase
     }
     public function testCanProcessSections(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $this->assertEquals(
             self::BREAK_LINE . '<header>This is Header</header>' . self::BREAK_LINE . '<p>This is Body</p>' . self::BREAK_LINE . self::BREAK_LINE . '<footer>This is Footer</footer>' . self::BREAK_LINE, $view->view('sections')
         );
     }
     public function testCanProcessIf(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
 
         $doc = '<p>@if( count( $colors ) > 1 ):There are many colors.@endif' . self::BREAK_LINE . 'Thank you!</p>';
         $data = [
@@ -96,8 +96,8 @@ final class ViewTest extends TestCase
             'count'     => -10
         ];
 
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $view->setDoc($doc);
         $this->assertEquals(
             '<p>Thank you!</p>', $view->view('', $data)
@@ -108,16 +108,16 @@ final class ViewTest extends TestCase
             'user' => 'Logged User'
         ];
 
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $view->setDoc($doc);
         $this->assertEquals(
             '<p>Hi Logged User!</p>', $view->view('', $data)
         );
         $doc = '<p>@if( $user != "" ):Hi {{ $user }}!@else Please, log on.@endif</p>';
 
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $view->setDoc($doc);
         $this->assertEquals(
             '<p> Please, log on.</p>', $view->view('')
@@ -125,9 +125,8 @@ final class ViewTest extends TestCase
     }
     public function testCanProcessFor(): void
     {
-        $view = new View();
-        $view->setPath('.' . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR);
-
+        $view = new View( NULL, 'tpl.php' );
+        $view->setBase( __DIR__ );
         $doc = '<p>The colors are: @for( $colors as $color ){{ $color }} @endfor</p>';
         $data = [
             'colors' => [
