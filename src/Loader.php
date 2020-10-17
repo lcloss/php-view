@@ -1,27 +1,18 @@
 <?php
 namespace LCloss\View;
 
-use LCloss\View\Environment;
-
 class Loader
 {
     protected $env = NULL;
     protected $path = "";
+    protected $base = "";
     protected $extension = "";
     protected $template = "";
     protected $doc = "";
     protected $data = [];
 
-    public function __construct( $path = NULL, $ext = NULL )
+    public function __construct()
     {
-        $base = implode( DIRECTORY_SEPARATOR, array_slice( explode( DIRECTORY_SEPARATOR, __DIR__ ), 0, -4 )) . DIRECTORY_SEPARATOR;
-        $this->env = Environment::load( $base . '.env' );
-
-        $path = ( !empty($path) ? $path  : $base . $this->env->get('path') );
-        $ext = ( !empty($ext) ? $ext : $this->env->get('extension') );
-
-        $this->setPath( $path );
-        $this->setExtension( $ext );
     }
 
     /**
@@ -37,6 +28,11 @@ class Loader
             $path .= DIRECTORY_SEPARATOR;
         }
         $this->path = $path;
+    }
+
+    public function setBase( $folder ): void
+    {
+        $this->base = $folder;
     }
 
     public function setTemplate( $template ): void
@@ -89,6 +85,11 @@ class Loader
         $this->set( preg_replace( $pattern, $replace_to, $this->get() ));
     }
 
+    public function base(): string
+    {
+        return $this->base;
+    }
+    
     /**
      * Get default folder.
      * @return string Folder 
@@ -103,6 +104,11 @@ class Loader
         return $this->data;
     }
 
+    public function extension(): string
+    {
+        return $this->extension;
+    }
+    
     public function key( $key )
     {
         if ( $this->keyExists( $key )) {
@@ -133,7 +139,7 @@ class Loader
         }
 
         $template = str_replace('.', DIRECTORY_SEPARATOR, $this->template);
-        $filename = $this->path() . $template . '.' . $this->extension;
+        $filename = $this->base() . $this->path() . $template . '.' . $this->extension;
 
         if ( !file_exists( $filename ) ) {
             // return '';

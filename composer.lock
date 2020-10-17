@@ -4,8 +4,51 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "140c7fadd85b158dd5cc9b34a5cceaf5",
-    "packages": [],
+    "content-hash": "d7b28ccbbf46577ce2b5fe2a1293e4d3",
+    "packages": [
+        {
+            "name": "lcloss/env",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lcloss/php-env.git",
+                "reference": "4c8a81a956e88354e6e764b8d9a823b1ea882934"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lcloss/php-env/zipball/4c8a81a956e88354e6e764b8d9a823b1ea882934",
+                "reference": "4c8a81a956e88354e6e764b8d9a823b1ea882934",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "LCloss\\Env\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luciano Closs",
+                    "email": "luciano@devcorner.io",
+                    "homepage": "https://lucianocloss.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Simple environment package",
+            "homepage": "https://php-env.devcorner.io",
+            "keywords": [
+                ".env",
+                "env",
+                "environment",
+                "php"
+            ],
+            "time": "2020-10-16T22:50:24+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "doctrine/instantiator",
@@ -1464,16 +1507,16 @@
         },
         {
             "name": "sebastian/type",
-            "version": "2.2.2",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/type.git",
-                "reference": "e494dcaeb89d1458c9ccd8c819745245a1669aea"
+                "reference": "fa592377f3923946cb90bf1f6a71ba2e5f229909"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/type/zipball/e494dcaeb89d1458c9ccd8c819745245a1669aea",
-                "reference": "e494dcaeb89d1458c9ccd8c819745245a1669aea",
+                "url": "https://api.github.com/repos/sebastianbergmann/type/zipball/fa592377f3923946cb90bf1f6a71ba2e5f229909",
+                "reference": "fa592377f3923946cb90bf1f6a71ba2e5f229909",
                 "shasum": ""
             },
             "require": {
@@ -1485,7 +1528,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
             "autoload": {
@@ -1512,7 +1555,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-09-28T06:01:38+00:00"
+            "time": "2020-10-06T08:41:03+00:00"
         },
         {
             "name": "sebastian/version",
