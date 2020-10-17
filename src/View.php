@@ -17,8 +17,8 @@ class View {
     private $_if = [];
     private $_if_count = 0;
 
-    public function __construct() {
-        $this->loader = new Loader();
+    public function __construct( $path = NULL, $ext = NULL ) {
+        $this->loader = new Loader( $path, $ext );
     }
 
     public function setPath( $path )

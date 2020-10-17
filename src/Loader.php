@@ -32,7 +32,11 @@ class Loader
      */
     public function setPath( $folder ): void 
     {
-        $this->path = str_replace( '.', DIRECTORY_SEPARATOR, $folder) . DIRECTORY_SEPARATOR;
+        $path = str_replace( '.', DIRECTORY_SEPARATOR, $folder);
+        if ( substr( $path, -1 ) != DIRECTORY_SEPARATOR ) {
+            $path .= DIRECTORY_SEPARATOR;
+        }
+        $this->path = $path;
     }
 
     public function setTemplate( $template ): void
