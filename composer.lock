@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7b28ccbbf46577ce2b5fe2a1293e4d3",
+    "content-hash": "f872e8b2d8ac684355f5fb9e812499a0",
     "packages": [
         {
             "name": "lcloss/env",
-            "version": "v0.0.1",
+            "version": "v0.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lcloss/php-env.git",
-                "reference": "4c8a81a956e88354e6e764b8d9a823b1ea882934"
+                "reference": "510e0767e1624edb44b09ff066389d94c0d05f63"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lcloss/php-env/zipball/4c8a81a956e88354e6e764b8d9a823b1ea882934",
-                "reference": "4c8a81a956e88354e6e764b8d9a823b1ea882934",
+                "url": "https://api.github.com/repos/lcloss/php-env/zipball/510e0767e1624edb44b09ff066389d94c0d05f63",
+                "reference": "510e0767e1624edb44b09ff066389d94c0d05f63",
                 "shasum": ""
             },
             "type": "library",
@@ -46,7 +46,7 @@
                 "environment",
                 "php"
             ],
-            "time": "2020-10-16T22:50:24+00:00"
+            "time": "2020-10-17T16:31:06+00:00"
         }
     ],
     "packages-dev": [
