@@ -33,7 +33,6 @@ class View {
     public function fromEnv( $path, $env_file = '.env' )
     {
         $env = Environment::getInstance( $env_file, $path );
-        xdebug_var_dump($env);
         $this->setBase( $env->base_dir );
         $this->setPath( $env->view['path'] );
         $this->setExtension( $env->view['extension'] );
@@ -217,14 +216,12 @@ class View {
      */
     private function _extractSections(): void {
         $sections_pattern = '/@section\([\s]*([' . self::VALID_WORD . ']*)(?:' . self::BREAK_LINE . ')?[\s]*\)(.*?)@endsection(?:' . self::BREAK_LINE . ')?/s';
-        // preg_match_all( $sections_pattern, $this->_doc , $matches );
         $matches = $this->loader->extract( $sections_pattern );
 
         // Just set the sections on internal array
         foreach( $matches[0] as $i => $found ) {
             $this->setSection($matches[1][$i], $matches[2][$i]);
             $this->loader->replace( $found, '' );
-            // $this->_doc = str_replace($found, '', $this->_doc);
         }
     }
 
@@ -234,21 +231,16 @@ class View {
      */
     private function _mergeExtends(): void {
         $extends_pattern = '/@extends\([\s]*([' . self::VALID_WORD . ']*)[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        // preg_match_all( $extends_pattern, $this->_doc , $matches );
         $matches = $this->loader->extract( $extends_pattern );
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
                 // Clear @extends key
                 $this->loader->replace( $found, '' );
-                // $this->_doc = str_replace($found, '', $this->_doc);
                 $this_content = $this->loader->get();
 
                 // Create a new view from extended layout
                 $extended = $this->createNew();
-                // xdebug_var_dump($matches[1][$i]);
-                // xdebug_var_dump($extended);
-                // $extended->setPath( '' );
                 $extended_doc = $extended->view($matches[1][$i], [], false);
 
                 // Replace current content with the extended view
@@ -285,7 +277,6 @@ class View {
     private function _replaceYield( String $key, String $content ): void {
         $yield_pattern = '/@yield\([\s]*' . $key . '[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
         $this->loader->pregReplace( $yield_pattern, $content );
-        // $this->setDoc( preg_replace( $yield_pattern, $content, $this->_doc ) );
     }
 
     /**
@@ -316,7 +307,6 @@ class View {
                 
                 // Replace in the doc
                 $this->loader->replace( $found, $include_doc );
-                // $this->_doc = str_replace($found, $include_doc, $this->_doc);
             }
         }
     }
@@ -363,7 +353,6 @@ class View {
     private function _getIfKeys(): array {
         $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
         $matches = $this->loader->extract( $keys_pattern );
-        // preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         $if_vars = [];
         foreach( $matches[0] as $i => $found ) {
@@ -392,7 +381,6 @@ class View {
      */
     private function _replaceLonelyKeys(): void {
         $keys_pattern = '/{{[\s]*\$([' . self::VALID_WORD . ']*)[\s]*}}/s';
-        // preg_match_all( $keys_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
@@ -428,7 +416,6 @@ class View {
      */
     private function _extractFor(): bool {
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
-        // preg_match_all( $for_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
@@ -437,7 +424,6 @@ class View {
             if ( "" != $found ) {
                 $has_any = true;
                 $key = $this->setNewFor( $matches[1][$i], $matches[2][$i], $matches[3][$i] );
-                // $this->_doc = str_replace( $found, '{% for $' . $key . ' %}', $this->_doc);
                 $this->loader->replace( $found, '{% for $' . $key . ' %}' );
             }
         }
@@ -451,7 +437,6 @@ class View {
      */
     private function _extractIf(): bool {
         $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)*?)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)*?))?@endif/s';
-        // preg_match_all( $if_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
@@ -460,7 +445,6 @@ class View {
             if ( "" != $found ) {
                 $has_any = true;
                 $key = $this->setNewIf( $matches[1][$i], $matches[2][$i], $matches[3][$i] );
-                // $this->_doc = str_replace( $found, '{% if $' . $key . ' %}', $this->_doc);
                 $this->loader->replace( $found, '{% if $' . $key . ' %}' );
             }
         }
@@ -490,7 +474,6 @@ class View {
      */
     private function _replaceFor(): bool {
         $for_pattern = '/{% for \$([' . self::VALID_WORD . ']+) %}/s';
-        // preg_match_all( $for_pattern, $this->_doc, $matches);
         $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
@@ -534,7 +517,6 @@ class View {
      */
     private function _replaceIf(): bool {
         $if_pattern = '/{% if \$([' . self::VALID_WORD . ']+) %}/s';
-        // preg_match_all( $if_pattern, $this->_doc, $matches);
         $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
@@ -569,7 +551,6 @@ class View {
                         $if_content = $data['else'];
                     }
     
-                    // $this->_doc = str_replace( $found, $if_content, $this->_doc );
                     $this->loader->replace( $found, $if_content );
                     $has_any = true;
                 }
@@ -595,10 +576,8 @@ class View {
      */
     private function _clearSections(): void {
         $yield_pattern = '/@yield\([\s]*[^)]*[\s]*\)(?:' . self::BREAK_LINE . ')?/s';
-        // preg_match_all( $yield_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $yield_pattern );
         foreach( $matches[0] as $i => $found ) {
-            // $this->_doc = str_replace( $found, '', $this->_doc );
             $this->loader->replace( $found, '' );
         }
     }
@@ -609,7 +588,6 @@ class View {
      */
     private function _clearKeys(): void {
         $keys_pattern = '/{{[\s]*\$[' . self::VALID_WORD . ']*[\s]*}}/s';
-        // $this->_doc = preg_replace( $keys_pattern, '', $this->_doc );
         $this->loader->pregReplace( $keys_pattern, '' );
     }
 
@@ -632,13 +610,11 @@ class View {
      */
     private function _clearFors(): bool {
         $for_pattern = '/@for\([\s]*\$([' . self::VALID_WORD . ']*)[\s]*as[\s]*\$([' . self::VALID_WORD . ']*)[\s]*\)((?:((?!@if)+(?!@for)+(?!@end)).)+)@endfor/s';
-        // preg_match_all( $for_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $for_pattern );
 
         $has_any = false;
         foreach( $matches[0] as $i => $found) {
             if ( "" != $found ) {
-                // $this->_doc = str_replace( $found, '', $this->_doc );
                 $this->loader->replace( $found, '' );
                 $has_any = true;
             }
@@ -653,14 +629,12 @@ class View {
      */
     private function _clearIfs(): bool {
         $if_pattern = '/@if\([\s]*([^:]+)[\s]*\)\:((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+)(?:@else((?:(?!@if)+(?!@for)+(?!@else)+(?!@end).)+))?@endif/s';
-        // preg_match_all( $if_pattern, $this->_doc, $matches );
         $matches = $this->loader->extract( $if_pattern );
 
         $has_any = false;
 
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
-                // $this->_doc = str_replace( $found, '', $this->_doc);
                 $this->loader->replace( $found, '' );
                 $has_any = true;
             }
