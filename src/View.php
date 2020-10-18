@@ -22,9 +22,12 @@ class View {
     {
         $this->loader = new Loader();
 
+        // Path : may be in 'point' format: resources.views
         if ( !is_null( $path ) ) {
             $this->setPath( $path );
         }
+
+        // Extension
         if ( !is_null( $ext ) ) {
             $this->setExtension( $ext );
         }
