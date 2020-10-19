@@ -206,6 +206,8 @@ class View {
 
         $this->_processPHP();
 
+        $this->_specialFunctions();
+
         // Then, we need to handle with @for and @if
         // We will extract every single block (without other inside) of each @for and each @if, until the $doc does not have any block.
         $this->_extractIfAndFor();
@@ -338,7 +340,6 @@ class View {
     private function _replaceRawKeys(): void {
         $keys_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
         $matches = $this->loader->extract( $keys_pattern );
-        // preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         foreach($matches[0] as $i => $found) {
             $key = $matches[1][$i];
@@ -366,6 +367,36 @@ class View {
             $res = ob_get_clean();
 
             $this->loader->replace( $found, $res );
+        }
+    }
+
+    private function _specialFunctions() {
+        $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*\,([^\)]*)[\s]*\)/is';
+        $matches = $this->loader->extract( $route_pattern );
+
+        $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
+
+        foreach( $matches[0] as $i => $found ) {
+            $route = $matches[1][$i];
+
+            // Replace keys
+            preg_match_all( $keys_pattern, $matches[2][$i], $key_matches );
+    
+            $has_notfound_key = false;
+            foreach( $key_matches[0] as $j => $key_found ) {
+                if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
+                    $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
+                } else {
+                    $has_notfound_key = true;
+                }
+
+                if ( !$has_notfound_key ) {
+                    $eval = "\$parms = " . $matches[2][$i] . ";";
+                    eval($eval);
+                    $link = \route($route, $parms);
+                    $this->loader->replace( $found, $link );
+                }
+            }
         }
     }
 
