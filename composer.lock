@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f872e8b2d8ac684355f5fb9e812499a0",
+    "content-hash": "83ca401eee57d9d8462cbf1fd0179de6",
     "packages": [
         {
             "name": "lcloss/env",
-            "version": "v0.0.2",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lcloss/php-env.git",
-                "reference": "510e0767e1624edb44b09ff066389d94c0d05f63"
+                "reference": "80ebeb90e7f9f61a540bd2cbe69da377573a590b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lcloss/php-env/zipball/510e0767e1624edb44b09ff066389d94c0d05f63",
-                "reference": "510e0767e1624edb44b09ff066389d94c0d05f63",
+                "url": "https://api.github.com/repos/lcloss/php-env/zipball/80ebeb90e7f9f61a540bd2cbe69da377573a590b",
+                "reference": "80ebeb90e7f9f61a540bd2cbe69da377573a590b",
                 "shasum": ""
             },
             "type": "library",
@@ -38,7 +38,7 @@
                     "role": "Developer"
                 }
             ],
-            "description": "Simple environment package",
+            "description": "Simple PHP environment package",
             "homepage": "https://php-env.devcorner.io",
             "keywords": [
                 ".env",
@@ -46,7 +46,7 @@
                 "environment",
                 "php"
             ],
-            "time": "2020-10-17T16:31:06+00:00"
+            "time": "2020-10-17T16:33:08+00:00"
         }
     ],
     "packages-dev": [
@@ -1780,7 +1780,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "lcloss/env": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

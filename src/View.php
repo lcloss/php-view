@@ -204,6 +204,8 @@ class View {
         // Now, replace all raw and lonely keys
         $this->_replaceKeys();
 
+        $this->_processPHP();
+
         // Then, we need to handle with @for and @if
         // We will extract every single block (without other inside) of each @for and each @if, until the $doc does not have any block.
         $this->_extractIfAndFor();
@@ -346,6 +348,24 @@ class View {
                     $this->loader->replace( $found, $this->loader->key($key) );
                 }
             }
+        }
+    }
+
+    private function _processPHP() {
+        $php_pattern = '/@php\(\)(.*?)@endphp/s';
+        $matches = $this->loader->extract( $php_pattern );
+
+        // Just set the sections on internal array
+        foreach( $matches[0] as $i => $found ) {
+            $code_view = $this->createNew();
+            $code_view->setDoc( $matches[1][$i] );
+            $code_exec = $code_view->parse();
+            xdebug_var_dump($code_exec);
+            ob_start();
+            eval( $code_exec );
+            $res = ob_get_clean();
+
+            $this->loader->replace( $found, $res );
         }
     }
 
