@@ -371,6 +371,7 @@ class View {
     }
 
     private function _specialFunctions() {
+        // @route( 'name', ['id' => $id] )
         $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*\,([^\)]*)[\s]*\)/is';
         $matches = $this->loader->extract( $route_pattern );
 
@@ -396,6 +397,19 @@ class View {
                     $link = \route($route, $parms);
                     $this->loader->replace( $found, $link );
                 }
+            }
+        }
+
+        // @is_route( 'test', 'return' )
+        $is_route_pattern = '/@is\_route\([\s]*\'([\w\.\_\-\/]*)\'[\s]*\,[\s]*\'(.*?)\'[\s]*\)/is';
+        $matches = $this->loader->extract( $is_route_pattern );
+
+        $uri = \request()->base();
+        foreach( $matches[0] as $i => $found ) {
+            if ( startsWith( $matches[1][$i], $uri ) ) {
+                $this->loader->replace( $found, $matches[2][$i] );
+            } else {
+                $this->loader->replace( $found, '' );
             }
         }
     }
