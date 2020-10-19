@@ -372,7 +372,7 @@ class View {
 
     private function _specialFunctions() {
         // @route( 'name', ['id' => $id] )
-        $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*\,([^\)]*)[\s]*\)/is';
+        $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*(?:\,([^\)]*)[\s]*)?\)/is';
         $matches = $this->loader->extract( $route_pattern );
 
         $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
@@ -380,23 +380,28 @@ class View {
         foreach( $matches[0] as $i => $found ) {
             $route = $matches[1][$i];
 
-            // Replace keys
-            preg_match_all( $keys_pattern, $matches[2][$i], $key_matches );
-    
-            $has_notfound_key = false;
-            foreach( $key_matches[0] as $j => $key_found ) {
-                if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
-                    $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
-                } else {
-                    $has_notfound_key = true;
-                }
+            if ( !empty($matches[2][$i]) ) {
+                // Replace keys
+                preg_match_all( $keys_pattern, $matches[2][$i], $key_matches );
+        
+                $has_notfound_key = false;
+                foreach( $key_matches[0] as $j => $key_found ) {
+                    if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
+                        $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
+                    } else {
+                        $has_notfound_key = true;
+                    }
 
-                if ( !$has_notfound_key ) {
-                    $eval = "\$parms = " . $matches[2][$i] . ";";
-                    eval($eval);
-                    $link = \route($route, $parms);
-                    $this->loader->replace( $found, $link );
+                    if ( !$has_notfound_key ) {
+                        $eval = "\$parms = " . $matches[2][$i] . ";";
+                        eval($eval);
+                        $link = \route($route, $parms);
+                        $this->loader->replace( $found, $link );
+                    }
                 }
+            } else {
+                $link = \route($route);
+                $this->loader->replace( $found, $link );
             }
         }
 
