@@ -14,7 +14,7 @@ I recommend you to install this package through [Composer](https://getcomposer.o
 
 You can easly install this package with:
 ```bash
-$ composer require lcloss/php-view
+$ composer require lcloss/view
 ```
 
 If you don't want to install through Composer, you can copy `src/view.php` class to any folder where it can be loaded.

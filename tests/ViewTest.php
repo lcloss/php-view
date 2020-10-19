@@ -74,7 +74,7 @@ final class ViewTest extends TestCase
         $view = new View( NULL, 'tpl.php' );
         $view->setBase( __DIR__ );
         $this->assertEquals(
-            self::BREAK_LINE . '<header>This is Header</header>' . self::BREAK_LINE . '<p>This is Body</p>' . self::BREAK_LINE . self::BREAK_LINE . '<footer>This is Footer</footer>' . self::BREAK_LINE, $view->view('sections')
+            self::BREAK_LINE . '<header>This is Header</header>' . self::BREAK_LINE  . self::BREAK_LINE . '<p>This is Body</p>' . self::BREAK_LINE . self::BREAK_LINE . '<footer>This is Footer</footer>' . self::BREAK_LINE, $view->view('sections')
         );
     }
     public function testCanProcessIf(): void

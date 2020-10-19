@@ -204,6 +204,10 @@ class View {
         // Now, replace all raw and lonely keys
         $this->_replaceKeys();
 
+        $this->_processPHP();
+
+        $this->_specialFunctions();
+
         // Then, we need to handle with @for and @if
         // We will extract every single block (without other inside) of each @for and each @if, until the $doc does not have any block.
         $this->_extractIfAndFor();
@@ -336,7 +340,6 @@ class View {
     private function _replaceRawKeys(): void {
         $keys_pattern = '/\!\$([' . self::VALID_WORD . ']*)/s';
         $matches = $this->loader->extract( $keys_pattern );
-        // preg_match_all( $keys_pattern, $this->_doc, $matches );
 
         foreach($matches[0] as $i => $found) {
             $key = $matches[1][$i];
@@ -345,6 +348,68 @@ class View {
                 if ( !is_array( $this->loader->key($key) )) {
                     $this->loader->replace( $found, $this->loader->key($key) );
                 }
+            }
+        }
+    }
+
+    private function _processPHP() {
+        $php_pattern = '/@php\(\)(.*?)@endphp/s';
+        $matches = $this->loader->extract( $php_pattern );
+
+        // Just set the sections on internal array
+        foreach( $matches[0] as $i => $found ) {
+            $code_view = $this->createNew();
+            $code_view->setDoc( $matches[1][$i] );
+            $code_exec = $code_view->parse();
+            xdebug_var_dump($code_exec);
+            ob_start();
+            eval( $code_exec );
+            $res = ob_get_clean();
+
+            $this->loader->replace( $found, $res );
+        }
+    }
+
+    private function _specialFunctions() {
+        // @route( 'name', ['id' => $id] )
+        $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*\,([^\)]*)[\s]*\)/is';
+        $matches = $this->loader->extract( $route_pattern );
+
+        $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
+
+        foreach( $matches[0] as $i => $found ) {
+            $route = $matches[1][$i];
+
+            // Replace keys
+            preg_match_all( $keys_pattern, $matches[2][$i], $key_matches );
+    
+            $has_notfound_key = false;
+            foreach( $key_matches[0] as $j => $key_found ) {
+                if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
+                    $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
+                } else {
+                    $has_notfound_key = true;
+                }
+
+                if ( !$has_notfound_key ) {
+                    $eval = "\$parms = " . $matches[2][$i] . ";";
+                    eval($eval);
+                    $link = \route($route, $parms);
+                    $this->loader->replace( $found, $link );
+                }
+            }
+        }
+
+        // @is_route( 'test', 'return' )
+        $is_route_pattern = '/@is\_route\([\s]*\'([\w\.\_\-\/]*)\'[\s]*\,[\s]*\'(.*?)\'[\s]*\)/is';
+        $matches = $this->loader->extract( $is_route_pattern );
+
+        $uri = \request()->base();
+        foreach( $matches[0] as $i => $found ) {
+            if ( startsWith( $matches[1][$i], $uri ) ) {
+                $this->loader->replace( $found, $matches[2][$i] );
+            } else {
+                $this->loader->replace( $found, '' );
             }
         }
     }
