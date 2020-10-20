@@ -406,15 +406,26 @@ class View {
         }
 
         // @is_route( 'test', 'return' )
-        $is_route_pattern = '/@is\_route\([\s]*\'([\w\.\_\-\/]*)\'[\s]*\,[\s]*\'(.*?)\'[\s]*\)/is';
+        $is_route_pattern = '/@is\_route\([\s]*\'([\w\.\_\-\/]*)\'[\s]*\,[\s]*\'(.*?)\'[\s]*(?:,[\s]*)?(true|false)?\)/is';
         $matches = $this->loader->extract( $is_route_pattern );
+        if ( !empty($matches[0][0]) ) {
+            xdebug_var_dump($matches);
+        }
 
         $uri = \request()->base();
         foreach( $matches[0] as $i => $found ) {
-            if ( startsWith( $matches[1][$i], $uri ) ) {
-                $this->loader->replace( $found, $matches[2][$i] );
-            } else {
-                $this->loader->replace( $found, '' );
+            if ( empty($matches[3][$i]) || $matches[3][$i] == 'false' ) {
+                if ( startsWith( $matches[1][$i], $uri ) ) {
+                    $this->loader->replace( $found, $matches[2][$i] );
+                } else {
+                    $this->loader->replace( $found, '' );
+                }
+            } elseif ( $matches[3][$i] == 'true' ) {
+                if ( $matches[1][$i] == $uri ) {
+                    $this->loader->replace( $found, $matches[2][$i] );
+                } else {
+                    $this->loader->replace( $found, '' );
+                }
             }
         }
 
