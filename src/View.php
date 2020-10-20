@@ -417,6 +417,15 @@ class View {
                 $this->loader->replace( $found, '' );
             }
         }
+
+        // @assets('resource')
+        $asset_pattern = '/@assets\([\s]*\'([^\']*)\'[\s]*\)/is';
+        $matches = $this->loader->extract( $asset_pattern );
+
+        foreach( $matches[0] as $i => $found ) {
+            $link = \asset($matches[1][$i]);
+            $this->loader->replace( $found, $link );
+        }
     }
 
     /**
