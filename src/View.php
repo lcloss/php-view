@@ -361,7 +361,6 @@ class View {
             $code_view = $this->createNew();
             $code_view->setDoc( $matches[1][$i] );
             $code_exec = $code_view->parse();
-            xdebug_var_dump($code_exec);
             ob_start();
             eval( $code_exec );
             $res = ob_get_clean();
@@ -408,9 +407,6 @@ class View {
         // @is_route( 'test', 'return' )
         $is_route_pattern = '/@is\_route\([\s]*\'([\w\.\_\-\/]*)\'[\s]*\,[\s]*\'(.*?)\'[\s]*(?:,[\s]*)?(true|false)?\)/is';
         $matches = $this->loader->extract( $is_route_pattern );
-        if ( !empty($matches[0][0]) ) {
-            xdebug_var_dump($matches);
-        }
 
         $uri = \request()->base();
         foreach( $matches[0] as $i => $found ) {
