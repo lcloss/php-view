@@ -13,17 +13,21 @@
             "role": "Developer"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "LCloss\\View\\": "src/"
-        }
+        },
+        "files": [
+            "helpers/view.php"
+        ]        
     },
     "scripts": {
         "test": "phpunit"
     },    
     "require": {
-        "lcloss/env": "dev-main"
+        "lcloss/env": "dev-main",
+        "lcloss/route": "dev-main"
     },
     "require-dev": {
         "phpunit/phpunit": "9"
