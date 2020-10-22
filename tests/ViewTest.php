@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
+namespace LCloss\View;
+
 use PHPUnit\Framework\TestCase;
-use LCloss\View\View;
 use LCloss\Route\Request;
 
 // require_once(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'View.php');

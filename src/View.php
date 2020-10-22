@@ -571,36 +571,40 @@ class View {
         foreach( $matches[0] as $i => $found ) {
             if ( "" != $found ) {
                 $key = $matches[1][$i];
-                $data = $this->_for[$key];
 
-                $occurs = $this->loader->key( $data['var'] );
-
-                $for_content = "";
-
-                foreach( $occurs as $item ) {
-                    $for_template = $this->createNew();
-                    $content = $data['content'];
-                    $for_template->setDoc( $data['content'] );
-
-                    if ( is_array( $item ) ) {
-                        foreach( $item as $item_key => $item_value ) {
-                            $for_template->setKey( $data['sub'] . '.' . $item_key, $item_value);
+                if ( array_key_exists( $key, $this->_for )) {
+                    $data = $this->_for[$key];
+                    $occurs = $this->loader->key( $data['var'] );
+                    if ( is_array( $occurs ) ) {
+                        $for_content = "";
+        
+                        foreach( $occurs as $item ) {
+                            $for_template = $this->createNew();
+                            $content = $data['content'];
+                            $for_template->setDoc( $data['content'] );
+        
+                            if ( is_array( $item ) ) {
+                                foreach( $item as $item_key => $item_value ) {
+                                    $for_template->setKey( $data['sub'] . '.' . $item_key, $item_value);
+                                }
+                            } else {
+                                $for_template->setKey( $data['sub'], $item );
+                            }
+                            $content = $for_template->parse();
+                            $for_content .= $content;
                         }
-                    } else {
-                        $for_template->setKey( $data['sub'], $item );
+        
+                        $this->loader->replace( $found, $for_content );
+                        $has_any = true;
                     }
-                    $content = $for_template->parse();
-                    $for_content .= $content;
+    
                 }
-
-                $this->loader->replace( $found, $for_content );
-                $has_any = true;
             }
         }
 
         return $has_any;
     }
-
+    
     /**
      * Replace all $_if with their respective value
      * @return bool if happens any replacement
