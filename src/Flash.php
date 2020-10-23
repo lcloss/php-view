@@ -34,7 +34,7 @@ class Flash
     public static function flash()
     {
         echo '<script>';
-        echo '$( document ).ready(function() {';
+        // echo '$(function() {';
         if ( isset( $_SESSION['flash'] )) {
             $flash = $_SESSION['flash'];
             foreach( $flash as $level => $messages ) {
@@ -66,7 +66,7 @@ class Flash
                 }
             }
         }
-        echo '});';
+        // echo '});';
         echo '</script>';
         self::flush();
     }
