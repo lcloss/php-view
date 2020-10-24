@@ -3,9 +3,8 @@ namespace LCloss\View;
 
 class Loader
 {
-    protected $env = NULL;
-    protected $path = "";
     protected $base = "";
+    protected $path = "";
     protected $extension = "";
     protected $template = "";
     protected $doc = "";
@@ -13,6 +12,11 @@ class Loader
 
     public function __construct()
     {
+    }
+
+    public function setBase( $folder ): void
+    {
+        $this->base = $folder;
     }
 
     /**
@@ -28,11 +32,6 @@ class Loader
             $path .= DIRECTORY_SEPARATOR;
         }
         $this->path = $path;
-    }
-
-    public function setBase( $folder ): void
-    {
-        $this->base = $folder;
     }
 
     public function setTemplate( $template ): void

@@ -33,9 +33,9 @@ class View {
         }
     }
 
-    public function fromEnv( $path, $env_file = '.env' )
+    public function fromEnv( $env_file = NULL )
     {
-        $env = Environment::getInstance( $env_file, $path );
+        $env = Environment::getInstance( $env_file );
         $this->setBase( $env->base_dir );
         $this->setPath( $env->view['path'] );
         $this->setExtension( $env->view['extension'] );
