@@ -26,7 +26,7 @@
         "test": "phpunit"
     },    
     "require": {
-        "lcloss/env": "dev-main",
+        "lcloss/env": "dev-release/0.0.*",
         "lcloss/route": "dev-main"
     },
     "require-dev": {
