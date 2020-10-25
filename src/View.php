@@ -252,7 +252,11 @@ class View {
 
                 // Replace current content with the extended view
                 $this->setDoc( $extended_doc );
-                $this->_replaceYield('content', $this_content);
+                
+                // Only replace 'content' if there is no 'content' yet:
+                if ( !array_key_exists('content', $this->_sections) ) {
+                    $this->_replaceYield('content', $this_content);
+                }
 
                 // Replace sections on current extended doc
                 $this->_replaceSections();
