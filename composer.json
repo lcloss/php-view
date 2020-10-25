@@ -13,7 +13,6 @@
             "role": "Developer"
         }
     ],
-    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "LCloss\\View\\": "src/"
@@ -25,6 +24,7 @@
     "scripts": {
         "test": "phpunit"
     },    
+    "minimum-stability": "stable",
     "require": {
         "lcloss/route": "dev-release/0.0.1",
         "lcloss/env": "dev-release/0.0.1"
