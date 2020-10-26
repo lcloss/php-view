@@ -461,7 +461,13 @@ class View {
         $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
-            $this->loader->replace( $found, $this->loader->parseKeys( $matches[1][$i] ));
+            $value = $this->loader->parseKeys( $matches[1][$i] );
+
+            // Only if the value was found
+            if ( $value != $matches[1][$i] ) {
+                $this->loader->replace( $found, $value );
+            }
+            // $this->loader->replace( $found, $this->loader->parseKeys(  ));
         }
     }
 
