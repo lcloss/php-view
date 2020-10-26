@@ -395,7 +395,7 @@ class View {
                             $obj = $this->loader->key( $parts[0] );
                             $eval = '$obj_value = $obj->' . $parts[1] . ';';
                             eval($eval);
-                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $obj_value . "'", $matches[2][$i] );
++                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $obj_value . "'", $matches[2][$i] );
                         } else {
                             $has_notfound_key = true;
                         } 
