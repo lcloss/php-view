@@ -474,15 +474,26 @@ class View {
      * @return void
      */
     private function _replaceLonelyKeys(): void {
-        $keys_pattern = '/{{[\s]*\$([' . self::VALID_WORD . ']*)[\s]*}}/s';
+        $keys_pattern = '/{{[\s]*\$([' . self::VALID_WORD . '\>]*)[\s]*}}/s';
         $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
             $key = $matches[1][$i];
-            // Only replaces keys found on the data
-            if ( $this->loader->keyExists( $key ) ) {
-                if ( !is_array( $this->loader->key($key) )) {
-                    $this->loader->replace( $found, $this->loader->key($key) );
+            // Check if is an object
+            if ( true == strpos( $key, '->' ) ) {
+                $parts = explode('->', $key);
+                if ( $this->loader->keyExists( $parts[0] ) ) {
+                    $obj = $this->loader->key( $parts[0] );
+                    $eval = '$obj_value = $obj->' . $parts[1] . ';';
+                    eval($eval);
+                    $this->loader->replace( $found, $obj_value );
+                }
+            } else {
+                // Only replaces keys found on the data
+                if ( $this->loader->keyExists( $key ) ) {
+                    if ( !is_array( $this->loader->key($key) )) {
+                        $this->loader->replace( $found, $this->loader->key($key) );
+                    }
                 }
             }
         }
