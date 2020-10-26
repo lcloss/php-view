@@ -378,7 +378,7 @@ class View {
         $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*(?:\,([^\)]*)[\s]*)?\)/is';
         $matches = $this->loader->extract( $route_pattern );
 
-        $keys_pattern = '/\$([' . self::VALID_WORD . ']*)/s';
+        $keys_pattern = '/\$([' . self::VALID_WORD . '\>]*)/s';
 
         foreach( $matches[0] as $i => $found ) {
             $route = $matches[1][$i];
@@ -389,10 +389,22 @@ class View {
         
                 $has_notfound_key = false;
                 foreach( $key_matches[0] as $j => $key_found ) {
-                    if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
-                        $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
+                    if ( true == strpos( $key_matches[1][$j], '->' ) ) {
+                        $parts = explode('->', $key_matches[1][$j]);
+                        if ( $this->loader->keyExists( $parts[0] ) ) {
+                            $obj = $this->loader->key( $parts[0] );
+                            $eval = '$obj_value = $obj->' . $parts[1] . ';';
+                            eval($eval);
+                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $obj_value . "'", $matches[2][$i] );
+                        } else {
+                            $has_notfound_key = true;
+                        } 
                     } else {
-                        $has_notfound_key = true;
+                        if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
+                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
+                        } else {
+                            $has_notfound_key = true;
+                        }
                     }
 
                     if ( !$has_notfound_key ) {
