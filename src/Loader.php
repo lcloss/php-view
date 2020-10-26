@@ -3,6 +3,7 @@ namespace LCloss\View;
 
 class Loader
 {
+    const KEY_WORD = '\w\.\_\-\>';
     protected $base = "";
     protected $path = "";
     protected $extension = "";
@@ -108,7 +109,7 @@ class Loader
         return $this->extension;
     }
     
-    public function key( $key )
+    public function key( string $key )
     {
         if ( $this->keyExists( $key )) {
             return $this->data[ $key ];
@@ -117,7 +118,7 @@ class Loader
         }
     }
 
-    public function extract( $pattern )
+    public function extract( string $pattern )
     {
         preg_match_all( $pattern, $this->get(), $matches );
         return $matches;
@@ -161,5 +162,45 @@ class Loader
     public function keyExists( $key ): bool
     {
         return array_key_exists( $key, $this->data() );
+    }
+
+    public function parseKeys( $subject ): string
+    {
+        $key_pattern = '/\$([' . self::KEY_WORD . ']*)/';
+        preg_match_all( $key_pattern, $subject, $matches );
+
+        foreach( $matches[0] as $i => $found ) {
+            $key = $matches[1][$i];
+            if ( true == strpos( $key, '->' ) ) {
+                $obj_parts = explode('->', $key);
+                if ( $this->keyExists( $obj_parts[0]) ) {
+                    $obj = $this->key( $obj_parts[0] );
+                    eval('$param_value = $obj->' . $obj_parts[1] . ';');
+                    
+                    if ( is_numeric($param_value) ) {
+                        $subject = str_replace( $found, $param_value, $subject );
+
+                    } elseif ( !is_array($param_value) ) {
+                        // $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                        $subject = str_replace( $found, $param_value, $subject );
+                    }
+                }
+            } else {
+                if ( $this->keyExists( $matches[1][$i] ) ) {
+                    $value = $this->key( $matches[1][$i] );
+
+                    if ( is_numeric($value) ) {
+                        $subject = str_replace( $found, $value, $subject );
+
+                    } elseif ( !is_array($value) ) {
+                        // $subject = str_replace( $found, "'".addslashes($value)."'", $subject );
+                        $subject = str_replace( $found, $value, $subject );
+                    }
+
+                }
+            }
+        }
+
+        return $subject;
     }
 }

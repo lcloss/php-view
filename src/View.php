@@ -8,7 +8,7 @@ use Exception;
 
 class View {
     const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
-    const VALID_WORD = '\w\.\_\-';
+    const VALID_WORD = '\w\.\_\-\>';
     
     protected $loader = NULL;
 
@@ -346,13 +346,7 @@ class View {
         $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
-            $key = $matches[1][$i];
-            // Only replaces keys found on the data
-            if ( $this->loader->keyExists( $key ) ) {
-                if ( !is_array( $this->loader->key($key) )) {
-                    $this->loader->replace( $found, $this->loader->key($key) );
-                }
-            }
+            $this->loader->replace( $found, $this->loader->parsekeys( $found ) );
         }
     }
 
@@ -378,41 +372,18 @@ class View {
         $route_pattern = '/@route\([\s]*\'([' . self::VALID_WORD . ']*)\'[\s]*(?:\,([^\)]*)[\s]*)?\)/is';
         $matches = $this->loader->extract( $route_pattern );
 
-        $keys_pattern = '/\$([' . self::VALID_WORD . '\>]*)/s';
+        $key_pattern = '/\$([' . self::VALID_WORD . ']*)/';
 
         foreach( $matches[0] as $i => $found ) {
             $route = $matches[1][$i];
 
             if ( !empty($matches[2][$i]) ) {
-                // Replace keys
-                preg_match_all( $keys_pattern, $matches[2][$i], $key_matches );
-        
-                $has_notfound_key = false;
-                foreach( $key_matches[0] as $j => $key_found ) {
-                    if ( true == strpos( $key_matches[1][$j], '->' ) ) {
-                        $parts = explode('->', $key_matches[1][$j]);
-                        if ( $this->loader->keyExists( $parts[0] ) ) {
-                            $obj = $this->loader->key( $parts[0] );
-                            $eval = '$obj_value = $obj->' . $parts[1] . ';';
-                            eval($eval);
-+                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $obj_value . "'", $matches[2][$i] );
-                        } else {
-                            $has_notfound_key = true;
-                        } 
-                    } else {
-                        if ( $this->loader->keyExists( $key_matches[1][$j] ) ) {
-                            $matches[2][$i] = str_replace( '$' . $key_matches[1][$j], "'" . $this->loader->key( $key_matches[1][$j] ) . "'", $matches[2][$i] );
-                        } else {
-                            $has_notfound_key = true;
-                        }
-                    }
+                $params = $this->loader->parseKeys( $matches[2][$i] );
 
-                    if ( !$has_notfound_key ) {
-                        $eval = "\$parms = " . $matches[2][$i] . ";";
-                        eval($eval);
-                        $link = \route($route, $parms);
-                        $this->loader->replace( $found, $link );
-                    }
+                if ( !preg_match( $key_pattern, $params ) ) {
+                    eval('$route_params = ' . $params . ';');
+                    $link = \route( $route, $route_params );
+                    $this->loader->replace( $found, $link );
                 }
             } else {
                 $link = \route($route);
@@ -486,28 +457,11 @@ class View {
      * @return void
      */
     private function _replaceLonelyKeys(): void {
-        $keys_pattern = '/{{[\s]*\$([' . self::VALID_WORD . '\>]*)[\s]*}}/s';
+        $keys_pattern = '/{{[\s]*(\$[' . self::VALID_WORD . ']*)[\s]*}}/s';
         $matches = $this->loader->extract( $keys_pattern );
 
         foreach($matches[0] as $i => $found) {
-            $key = $matches[1][$i];
-            // Check if is an object
-            if ( true == strpos( $key, '->' ) ) {
-                $parts = explode('->', $key);
-                if ( $this->loader->keyExists( $parts[0] ) ) {
-                    $obj = $this->loader->key( $parts[0] );
-                    $eval = '$obj_value = $obj->' . $parts[1] . ';';
-                    eval($eval);
-                    $this->loader->replace( $found, $obj_value );
-                }
-            } else {
-                // Only replaces keys found on the data
-                if ( $this->loader->keyExists( $key ) ) {
-                    if ( !is_array( $this->loader->key($key) )) {
-                        $this->loader->replace( $found, $this->loader->key($key) );
-                    }
-                }
-            }
+            $this->loader->replace( $found, $this->loader->parseKeys( $matches[1][$i] ));
         }
     }
 
