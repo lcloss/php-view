@@ -175,20 +175,23 @@ class Loader
                 $obj_parts = explode('->', $key);
                 if ( $this->keyExists( $obj_parts[0]) ) {
                     $obj = $this->key( $obj_parts[0] );
-                    eval('$param_value = (isset( $obj->' . $obj_parts[1] . ' ) ? $obj->' . $obj_parts[1] . ' : "");');
-                    
-                    if ( is_numeric($param_value) ) {
-                        $subject = str_replace( $found, $param_value, $subject );
-
-                    } elseif ( !is_array($param_value) ) {
-                        // $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
-                        if ( $with_slashes ) {
-                            $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
-                        } else {
+                    eval('$check = isset( $obj->' . $obj_parts[1] . ' ) || !is_null( $obj->' . $obj_parts[1] . ' );');
+                    if ($check) {
+                        eval('$param_value = $obj->' . $obj_parts[1] . ';');
+                        if ( is_numeric($param_value) ) {
                             $subject = str_replace( $found, $param_value, $subject );
+    
+                        } elseif ( !is_array($param_value) ) {
+                            // $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                            if ( $with_slashes ) {
+                                $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                            } else {
+                                $subject = str_replace( $found, $param_value, $subject );
+                            }
+                            
                         }
-                        
                     }
+                    
                 }
             } else {
                 if ( $this->keyExists( $matches[1][$i] ) ) {
