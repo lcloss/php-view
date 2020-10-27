@@ -164,7 +164,7 @@ class Loader
         return array_key_exists( $key, $this->data() );
     }
 
-    public function parseKeys( $subject ): string
+    public function parseKeys( $subject, $with_slashes = false ): string
     {
         $key_pattern = '/\$([' . self::KEY_WORD . ']*)/';
         preg_match_all( $key_pattern, $subject, $matches );
@@ -182,7 +182,12 @@ class Loader
 
                     } elseif ( !is_array($param_value) ) {
                         // $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
-                        $subject = str_replace( $found, $param_value, $subject );
+                        if ( $with_slashes ) {
+                            $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                        } else {
+                            $subject = str_replace( $found, $param_value, $subject );
+                        }
+                        
                     }
                 }
             } else {
@@ -194,7 +199,12 @@ class Loader
 
                     } elseif ( !is_array($value) ) {
                         // $subject = str_replace( $found, "'".addslashes($value)."'", $subject );
-                        $subject = str_replace( $found, $value, $subject );
+                        if ( $with_slashes ) {
+                            $subject = str_replace( $found, "'".addslashes($value)."'", $subject );
+                        } else {
+                            $subject = str_replace( $found, $value, $subject );
+                        }
+                        
                     }
 
                 }

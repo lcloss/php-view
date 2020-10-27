@@ -609,22 +609,25 @@ class View {
                 if ( array_key_exists( $key, $this->_if )) {
                     $data = $this->_if[$key];
 
-                    $cond = $data['cond'];
-                    $if_template = $this->createNew();
-                    $if_template->setDoc( $cond );
+                    // $cond = $data['cond'];
+                    // $if_template = $this->createNew();
+                    // $if_template->setDoc( $cond );
     
-                    // Extract all if variables and create theirs variables with prefix 'xif'
-                    $if_keys = $if_template->_getIfKeys();
-                    $if_variables = [];
-                    foreach( $if_keys as $key => $if_data ) {
-                        $cond = str_replace( '$' . $if_data['original'], '$xif_' . $key, $cond );
-                        $if_variables[$key] = $if_data['content'];
-                    }
-                    extract( $if_variables, EXTR_PREFIX_ALL, 'xif');
-                    // Now, evaluate condition:
-                    $cond = '$res = ( ' . $cond . ');';
-                    eval($cond);
-    
+                    // // Extract all if variables and create theirs variables with prefix 'xif'
+                    // $if_keys = $if_template->_getIfKeys();
+                    // $if_variables = [];
+                    // foreach( $if_keys as $key => $if_data ) {
+                    //     $cond = str_replace( '$' . $if_data['original'], '$xif_' . $key, $cond );
+                    //     $if_variables[$key] = $if_data['content'];
+                    // }
+                    // extract( $if_variables, EXTR_PREFIX_ALL, 'xif');
+                    // // Now, evaluate condition:
+                    // $cond = '$res = ( ' . $cond . ');';
+                    // eval($cond);
+                    xdebug_var_dump($data['cond']);
+                    $cond = $this->loader->parseKeys( $data['cond'], true );
+                    xdebug_var_dump($cond);
+                    eval('$res = (' . $cond . ');');
                     // And decide what block wins:
                     if ( $res ) {
                         $if_content = $data['then'];
