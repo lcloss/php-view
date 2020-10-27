@@ -381,8 +381,12 @@ class View {
                 $params = $this->loader->parseKeys( $matches[2][$i] );
 
                 if ( !preg_match( $key_pattern, $params ) ) {
-                    eval('$route_params = ' . $params . ';');
-                    $link = \route( $route, $route_params );
+                    if ( empty(trim($params)) ) {
+                        $link = \route($route);
+                    } else {
+                        eval('$route_params = ' . $params . ';');
+                        $link = \route( $route, $route_params );
+                    }
                     $this->loader->replace( $found, $link );
                 }
             } else {
@@ -624,10 +628,14 @@ class View {
                     // // Now, evaluate condition:
                     // $cond = '$res = ( ' . $cond . ');';
                     // eval($cond);
-                    xdebug_var_dump($data['cond']);
                     $cond = $this->loader->parseKeys( $data['cond'], true );
-                    xdebug_var_dump($cond);
-                    eval('$res = (' . $cond . ');');
+
+                    // Check for missed keys
+                    if ( !preg_match( '/\$/', $cond) ) {
+                        eval('$res = (' . $cond . ');');
+                    } else {
+                        $res = false;
+                    }
                     // And decide what block wins:
                     if ( $res ) {
                         $if_content = $data['then'];

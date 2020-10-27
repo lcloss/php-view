@@ -175,7 +175,7 @@ class Loader
                 $obj_parts = explode('->', $key);
                 if ( $this->keyExists( $obj_parts[0]) ) {
                     $obj = $this->key( $obj_parts[0] );
-                    eval('$param_value = $obj->' . $obj_parts[1] . ';');
+                    eval('$param_value = (isset( $obj->' . $obj_parts[1] . ' ) ? $obj->' . $obj_parts[1] . ' : "");');
                     
                     if ( is_numeric($param_value) ) {
                         $subject = str_replace( $found, $param_value, $subject );
