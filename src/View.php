@@ -8,7 +8,7 @@ use Exception;
 
 class View {
     const BREAK_LINE = ( PHP_OS == 'Linux' ? "\n" : "\r\n" );
-    const VALID_WORD = '\w\.\_\-\>';
+    const VALID_WORD = '\w\.\_\-\>\)\(';
     
     protected $loader = NULL;
 

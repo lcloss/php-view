@@ -3,7 +3,7 @@ namespace LCloss\View;
 
 class Loader
 {
-    const KEY_WORD = '\w\.\_\-\>';
+    const KEY_WORD = '\w\.\_\-\>\)\(';
     protected $base = "";
     protected $path = "";
     protected $extension = "";
@@ -175,9 +175,11 @@ class Loader
                 $obj_parts = explode('->', $key);
                 if ( $this->keyExists( $obj_parts[0]) ) {
                     $obj = $this->key( $obj_parts[0] );
-                    eval('$check = isset( $obj->' . $obj_parts[1] . ' ) || !is_null( $obj->' . $obj_parts[1] . ' );');
+                    $rest = implode('', array_slice( $obj_parts, 1 ));
+                    eval('$check = !is_null( $obj->' . $rest . ' );');
                     if ($check) {
-                        eval('$param_value = $obj->' . $obj_parts[1] . ';');
+                        $eval = '$param_value = $obj->' . $rest . ';';
+                        eval($eval);
                         if ( is_numeric($param_value) ) {
                             $subject = str_replace( $found, $param_value, $subject );
     
