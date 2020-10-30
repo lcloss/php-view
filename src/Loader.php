@@ -174,10 +174,38 @@ class Loader
             if ( true == strpos( $key, '->' ) ) {
                 $obj_parts = explode('->', $key);
                 if ( $this->keyExists( $obj_parts[0]) ) {
-                    $obj = $this->key( $obj_parts[0] );
-                    $rest = implode('', array_slice( $obj_parts, 1 ));
-                    eval('$check = !is_null( $obj->' . $rest . ' );');
+                    // $obj = $this->key( $obj_parts[0] );
+                    $obj = $this->key( array_shift( $obj_parts ) );
+                    $rest = implode('->', $obj_parts);
+
+                    $eval = '$check = !is_null($obj->' . $rest . ');';
+                    // xdebug_var_dump($eval);
+                    eval($eval);
+                    // xdebug_var_dump($check);
+                    // $check = true;
+                    // while( count($obj_parts) > 0 && $check == true ) {
+                    //     $property = array_shift($obj_parts);
+                    //     if ( endsWith(')', $property) ) {
+                    //         if ( method_exists($obj, $property) ) {
+                    //             $eval = '$check = !is_null( $obj->' . $property . ');';
+                    //             eval($eval);
+                    //         } else {
+                    //             $check = false;
+                    //         }
+                    //     } else {
+                    //         if ( property_exists( $obj, $property )) {
+                    //             $eval = '$check = !is_null( $obj->' . $property . ');';
+                    //             eval($eval);
+                    //         } else {
+                    //             $check = false;
+                    //         }
+                    //     }
+                    //     if ($check) {
+                    //         eval('$obj = $obj->' . $property . ';');
+                    //     }
+                    // }
                     if ($check) {
+                        // $param_value = $obj;
                         $eval = '$param_value = $obj->' . $rest . ';';
                         eval($eval);
                         if ( is_numeric($param_value) ) {
