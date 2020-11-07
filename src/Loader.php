@@ -3,9 +3,9 @@ namespace LCloss\View;
 
 class Loader
 {
-    protected $env = NULL;
-    protected $path = "";
+    const KEY_WORD = '\w\.\_\-\>\)\(';
     protected $base = "";
+    protected $path = "";
     protected $extension = "";
     protected $template = "";
     protected $doc = "";
@@ -13,6 +13,11 @@ class Loader
 
     public function __construct()
     {
+    }
+
+    public function setBase( $folder ): void
+    {
+        $this->base = $folder;
     }
 
     /**
@@ -28,11 +33,6 @@ class Loader
             $path .= DIRECTORY_SEPARATOR;
         }
         $this->path = $path;
-    }
-
-    public function setBase( $folder ): void
-    {
-        $this->base = $folder;
     }
 
     public function setTemplate( $template ): void
@@ -109,7 +109,7 @@ class Loader
         return $this->extension;
     }
     
-    public function key( $key )
+    public function key( string $key )
     {
         if ( $this->keyExists( $key )) {
             return $this->data[ $key ];
@@ -118,7 +118,7 @@ class Loader
         }
     }
 
-    public function extract( $pattern )
+    public function extract( string $pattern )
     {
         preg_match_all( $pattern, $this->get(), $matches );
         return $matches;
@@ -162,5 +162,88 @@ class Loader
     public function keyExists( $key ): bool
     {
         return array_key_exists( $key, $this->data() );
+    }
+
+    public function parseKeys( $subject, $with_slashes = false ): string
+    {
+        $key_pattern = '/\$([' . self::KEY_WORD . ']*)/';
+        preg_match_all( $key_pattern, $subject, $matches );
+
+        foreach( $matches[0] as $i => $found ) {
+            $key = $matches[1][$i];
+            if ( true == strpos( $key, '->' ) ) {
+                $obj_parts = explode('->', $key);
+                if ( $this->keyExists( $obj_parts[0]) ) {
+                    // $obj = $this->key( $obj_parts[0] );
+                    $obj = $this->key( array_shift( $obj_parts ) );
+                    $rest = implode('->', $obj_parts);
+
+                    $eval = '$check = !is_null($obj->' . $rest . ');';
+                    // xdebug_var_dump($eval);
+                    eval($eval);
+                    // xdebug_var_dump($check);
+                    // $check = true;
+                    // while( count($obj_parts) > 0 && $check == true ) {
+                    //     $property = array_shift($obj_parts);
+                    //     if ( endsWith(')', $property) ) {
+                    //         if ( method_exists($obj, $property) ) {
+                    //             $eval = '$check = !is_null( $obj->' . $property . ');';
+                    //             eval($eval);
+                    //         } else {
+                    //             $check = false;
+                    //         }
+                    //     } else {
+                    //         if ( property_exists( $obj, $property )) {
+                    //             $eval = '$check = !is_null( $obj->' . $property . ');';
+                    //             eval($eval);
+                    //         } else {
+                    //             $check = false;
+                    //         }
+                    //     }
+                    //     if ($check) {
+                    //         eval('$obj = $obj->' . $property . ';');
+                    //     }
+                    // }
+                    if ($check) {
+                        // $param_value = $obj;
+                        $eval = '$param_value = $obj->' . $rest . ';';
+                        eval($eval);
+                        if ( is_numeric($param_value) ) {
+                            $subject = str_replace( $found, $param_value, $subject );
+    
+                        } elseif ( !is_array($param_value) ) {
+                            // $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                            if ( $with_slashes ) {
+                                $subject = str_replace( $found, "'".addslashes($param_value)."'", $subject );
+                            } else {
+                                $subject = str_replace( $found, $param_value, $subject );
+                            }
+                            
+                        }
+                    }
+                    
+                }
+            } else {
+                if ( $this->keyExists( $matches[1][$i] ) ) {
+                    $value = $this->key( $matches[1][$i] );
+
+                    if ( is_numeric($value) ) {
+                        $subject = str_replace( $found, $value, $subject );
+
+                    } elseif ( !is_array($value) ) {
+                        // $subject = str_replace( $found, "'".addslashes($value)."'", $subject );
+                        if ( $with_slashes ) {
+                            $subject = str_replace( $found, "'".addslashes($value)."'", $subject );
+                        } else {
+                            $subject = str_replace( $found, $value, $subject );
+                        }
+                        
+                    }
+
+                }
+            }
+        }
+
+        return $subject;
     }
 }
